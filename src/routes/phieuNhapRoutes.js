@@ -8,6 +8,7 @@ router.use(requireAuth);
 router.use(requireRole(['QuanLy', 'ThuKho']));
 
 // API endpoints
+router.post('/import-hang-loat', phieuNhapController.postImportHangLoat);
 router.post('/', phieuNhapController.taoPhieuNhap);
 router.get('/', phieuNhapController.getDanhSach);
 router.get('/:id', phieuNhapController.getChiTiet);

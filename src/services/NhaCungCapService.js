@@ -1,5 +1,5 @@
 const BaseService = require('./BaseService');
-const { NhaCungCap } = require('../models');
+const { NhaCungCap, PhieuNhap, CongNo } = require('../models');
 
 class NhaCungCapService extends BaseService {
   constructor() {
@@ -66,6 +66,37 @@ class NhaCungCapService extends BaseService {
       throw this.createError('Không tìm thấy nhà cung cấp', 404);
     }
     return { success: true, id };
+  }
+
+  async getLichSuNhap(id, query = {}) {
+    // 1. Kiểm tra NCC tồn tại
+    const ncc = await this.getNhaCungCapDetail(id);
+
+    // 2. Lấy thông tin công nợ hiện tại
+    const congNo = await CongNo.findOne({ loaiDoiTuong: 'NhaCungCap', nhaCungCap: id });
+    const duNo = congNo ? Math.max(0, congNo.soTienNo - congNo.soTienDaTra) : 0;
+
+    // 3. Phân trang và lấy lịch sử Phiếu nhập
+    const filter = { nhaCungCap: id };
+    const { page, limit, skip } = this.getPaginationOptions(query);
+    
+    const [list, total] = await Promise.all([
+      PhieuNhap.find(filter)
+        .populate('nhanVien', 'hoTen username')
+        .sort({ ngayNhap: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      PhieuNhap.countDocuments(filter)
+    ]);
+
+    return {
+      nhaCungCap: { id: ncc._id, tenNCC: ncc.tenNCC },
+      duNo,
+      lichSuNhap: {
+        list,
+        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
+      }
+    };
   }
 }
 

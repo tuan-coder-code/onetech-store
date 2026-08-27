@@ -47,6 +47,24 @@ class PhieuNhapController extends BaseController {
       return this.handleError(res, error, 'Lỗi khi lấy chi tiết phiếu nhập');
     }
   };
+
+  /**
+   * [POST] /api/phieu-nhap/import-hang-loat
+   */
+  postImportHangLoat = async (req, res) => {
+    try {
+      const maNV = req.user ? req.user._id : req.body.maNV;
+      const payload = {
+        ...req.body,
+        maNV
+      };
+
+      const result = await PhieuNhapService.importHangLoat(payload);
+      return this.sendSuccess(res, result, 'Nhập hàng loạt thành công', 201);
+    } catch (error) {
+      return this.handleError(res, error, 'Lỗi khi nhập hàng loạt');
+    }
+  };
 }
 
 module.exports = new PhieuNhapController();
