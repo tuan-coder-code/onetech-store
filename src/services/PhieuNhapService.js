@@ -223,6 +223,89 @@ class PhieuNhapService extends BaseService {
 
     return await this.taoPhieuNhap(phieuNhapPayload);
   }
+
+  /**
+   * Trả hàng Nhà cung cấp (Tình huống biên)
+   * Yêu cầu: danh sách IMEI phải đang ở trạng thái 'Con hang' hoặc 'Loi'
+   */
+  async traHangNhaCungCap(payload) {
+    const { imeiList = [], maNCC, lyDo = '' } = payload;
+    if (!maNCC) throw this.createError('Thiếu mã Nhà cung cấp', 400);
+    if (!imeiList || imeiList.length === 0) throw this.createError('Danh sách IMEI trả hàng không được trống', 400);
+
+    const imeis = await MayImei.find({ imei: { $in: imeiList } });
+    if (imeis.length !== imeiList.length) {
+      throw this.createError('Một số IMEI không tồn tại trong hệ thống', 404);
+    }
+
+    // Kiểm tra trạng thái
+    for (const m of imeis) {
+      if (m.trangThai !== 'Con hang' && m.trangThai !== 'Loi') {
+        throw this.createError(`IMEI ${m.imei} đang ở trạng thái ${m.trangThai}, không thể trả hàng`, 400);
+      }
+    }
+
+    // Kiểm tra NCC và lấy giá nhập
+    const ctPhieuNhaps = await CT_PhieuNhap.find({ imei: { $in: imeiList } }).populate('phieuNhap');
+    if (ctPhieuNhaps.length !== imeiList.length) {
+      throw this.createError('Không tìm thấy thông tin nhập kho gốc của một số IMEI', 404);
+    }
+
+    let tongTienTra = 0;
+    for (const ct of ctPhieuNhaps) {
+      if (ct.phieuNhap.nhaCungCap.toString() !== maNCC.toString()) {
+        throw this.createError(`IMEI ${ct.imei} không thuộc Nhà cung cấp này`, 400);
+      }
+      tongTienTra += ct.donGiaNhap;
+    }
+
+    // Đổi trạng thái máy
+    await MayImei.updateMany(
+      { imei: { $in: imeiList } },
+      { $set: { trangThai: 'Tra NCC' } }
+    );
+
+    // Trừ tồn kho
+    for (const m of imeis) {
+      await TonKhoService.capNhatTonKho(m.sanPham, null, -1);
+    }
+
+    // Xử lý tài chính
+    let congNo = await CongNo.findOne({ loaiDoiTuong: 'NhaCungCap', nhaCungCap: maNCC });
+    if (congNo && congNo.soTienNo > congNo.soTienDaTra) {
+      let duNo = congNo.soTienNo - congNo.soTienDaTra;
+      if (tongTienTra <= duNo) {
+        // Trừ trực tiếp vào nợ
+        congNo.soTienDaTra += tongTienTra;
+        if (congNo.soTienNo === congNo.soTienDaTra) {
+          congNo.trangThai = 'Da tra het';
+        }
+        await congNo.save();
+      } else {
+        // Trừ hết nợ, phần dư ra thì lập Phiếu thu nhận lại tiền từ NCC
+        let tienThua = tongTienTra - duNo;
+        congNo.soTienDaTra = congNo.soTienNo;
+        congNo.trangThai = 'Da tra het';
+        await congNo.save();
+
+        await ThanhToanService.taoPhieuThu({
+          congNo: congNo._id,
+          soTien: tienThua,
+          hinhThuc: 'Tien mat',
+          ghiChu: lyDo || `Nhận hoàn tiền trả NCC phần dư nợ`
+        });
+      }
+    } else {
+      // NCC không nợ, trả tiền thẳng cho mình
+      await ThanhToanService.taoPhieuThu({
+        soTien: tongTienTra,
+        hinhThuc: 'Tien mat',
+        ghiChu: lyDo || `Nhận hoàn tiền trả hàng NCC`
+      });
+    }
+
+    return { success: true, tongTienTra, soLuongTra: imeiList.length };
+  }
 }
 
 module.exports = new PhieuNhapService();

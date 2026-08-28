@@ -65,6 +65,18 @@ class PhieuNhapController extends BaseController {
       return this.handleError(res, error, 'Lỗi khi nhập hàng loạt');
     }
   };
+
+  /**
+   * [POST] /api/phieu-nhap/tra-hang-ncc
+   */
+  postTraHangNCC = async (req, res) => {
+    try {
+      const result = await PhieuNhapService.traHangNhaCungCap(req.body);
+      return this.sendSuccess(res, result, 'Trả hàng cho nhà cung cấp thành công', 200);
+    } catch (error) {
+      return this.handleError(res, error, 'Lỗi khi trả hàng cho nhà cung cấp');
+    }
+  };
 }
 
 module.exports = new PhieuNhapController();
