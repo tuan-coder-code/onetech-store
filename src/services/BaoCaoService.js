@@ -330,40 +330,57 @@ class BaoCaoService extends BaseService {
    */
   async getBaoCaoTaiChinhTongHop() {
     const [
-      phieuThus,
-      phieuChis,
-      congNos,
-      mayImeis,
-      phuKiens,
-      hoaDons
+      phieuThuStats,
+      phieuChiStats,
+      congNoStats,
+      mayImeiStats,
+      phuKienStats,
+      hoaDonStats
     ] = await Promise.all([
-      PhieuThu.find({ trangThai: { $ne: 'Da huy' } }).lean(),
-      PhieuChi.find({ trangThai: { $ne: 'Da huy' } }).lean(),
-      CongNo.find().lean(),
-      MayImei.find({ trangThai: 'Con hang' }).lean(),
-      PhuKien.find().lean(),
-      HoaDon.find({ trangThai: { $ne: 'Da huy' } }).lean()
+      PhieuThu.aggregate([
+        { $match: { trangThai: { $ne: 'Da huy' } } },
+        { $group: { _id: '$hinhThuc', tongThu: { $sum: '$soTien' } } }
+      ]),
+      PhieuChi.aggregate([
+        { $match: { trangThai: { $ne: 'Da huy' } } },
+        { $group: { _id: '$hinhThuc', tongChi: { $sum: '$soTien' } } }
+      ]),
+      CongNo.aggregate([
+        { $group: {
+            _id: '$loaiDoiTuong',
+            tongNo: { $sum: { $subtract: [ { $ifNull: ['$soTienNo', 0] }, { $ifNull: ['$soTienDaTra', 0] } ] } }
+        }}
+      ]),
+      MayImei.aggregate([
+        { $match: { trangThai: 'Con hang' } },
+        { $group: { _id: null, count: { $sum: 1 }, tongGiaTri: { $sum: { $ifNull: ['$giaNhap', 0] } } } }
+      ]),
+      PhuKien.aggregate([
+        { $group: { _id: null, tongGiaTri: { $sum: { $multiply: [ { $ifNull: ['$giaNhap', 0] }, { $ifNull: ['$soLuongTon', 0] } ] } } } }
+      ]),
+      HoaDon.aggregate([
+        { $match: { trangThai: { $ne: 'Da huy' } } },
+        { $group: {
+            _id: null,
+            count: { $sum: 1 },
+            tongDoanhThu: { $sum: { $cond: [ { $gt: ['$soTienThanhToan', 0] }, '$soTienThanhToan', { $ifNull: ['$tongTien', 0] } ] } }
+        }}
+      ])
     ]);
 
     // 1. Số dư Sổ Quỹ
-    let tongThu = 0;
-    let thuTienMat = 0;
-    let thuNganHang = 0;
-    phieuThus.forEach(pt => {
-      const st = pt.soTien || 0;
-      tongThu += st;
-      if (pt.hinhThuc === 'Tien mat') thuTienMat += st;
-      else thuNganHang += st;
+    let tongThu = 0; let thuTienMat = 0; let thuNganHang = 0;
+    phieuThuStats.forEach(pt => {
+      tongThu += pt.tongThu;
+      if (pt._id === 'Tien mat') thuTienMat += pt.tongThu;
+      else thuNganHang += pt.tongThu;
     });
 
-    let tongChi = 0;
-    let chiTienMat = 0;
-    let chiNganHang = 0;
-    phieuChis.forEach(pc => {
-      const st = pc.soTien || 0;
-      tongChi += st;
-      if (pc.hinhThuc === 'Tien mat') chiTienMat += st;
-      else chiNganHang += st;
+    let tongChi = 0; let chiTienMat = 0; let chiNganHang = 0;
+    phieuChiStats.forEach(pc => {
+      tongChi += pc.tongChi;
+      if (pc._id === 'Tien mat') chiTienMat += pc.tongChi;
+      else chiNganHang += pc.tongChi;
     });
 
     const tonQuy = tongThu - tongChi;
@@ -371,51 +388,28 @@ class BaoCaoService extends BaseService {
     const tonQuyNganHang = thuNganHang - chiNganHang;
 
     // 2. Công nợ
-    let noPhaiThuKH = 0;
-    let noPhaiTraNCC = 0;
-    congNos.forEach(cn => {
-      const conNo = Math.max(0, (cn.soTienNo || 0) - (cn.soTienDaTra || 0));
-      if (cn.loaiDoiTuong === 'KhachHang') noPhaiThuKH += conNo;
-      else if (cn.loaiDoiTuong === 'NhaCungCap') noPhaiTraNCC += conNo;
+    let noPhaiThuKH = 0; let noPhaiTraNCC = 0;
+    congNoStats.forEach(cn => {
+      const conNo = Math.max(0, cn.tongNo);
+      if (cn._id === 'KhachHang') noPhaiThuKH += conNo;
+      else if (cn._id === 'NhaCungCap') noPhaiTraNCC += conNo;
     });
 
-    // 3. Giá trị kho hàng máy IMEI & Phụ kiện
-    let giaTriKhoMay = 0;
-    mayImeis.forEach(m => {
-      giaTriKhoMay += (m.giaNhap || 0);
-    });
-
-    let giaTriKhoPhuKien = 0;
-    phuKiens.forEach(pk => {
-      giaTriKhoPhuKien += (pk.giaNhap || 0) * (pk.soLuongTon || 0);
-    });
+    // 3. Giá trị kho hàng
+    const giaTriKhoMay = mayImeiStats[0] ? mayImeiStats[0].tongGiaTri : 0;
+    const soLuongMayConHang = mayImeiStats[0] ? mayImeiStats[0].count : 0;
+    const giaTriKhoPhuKien = phuKienStats[0] ? phuKienStats[0].tongGiaTri : 0;
     const tongGiaTriKho = giaTriKhoMay + giaTriKhoPhuKien;
 
     // 4. Doanh thu bán hàng
-    const tongDoanhThuBanHang = hoaDons.reduce((acc, h) => acc + (h.soTienThanhToan || h.tongTien || 0), 0);
+    const tongDoanhThuBanHang = hoaDonStats[0] ? hoaDonStats[0].tongDoanhThu : 0;
+    const tongHoaDon = hoaDonStats[0] ? hoaDonStats[0].count : 0;
 
     return {
-      soQuy: {
-        tongThu,
-        tongChi,
-        tonQuy,
-        tonQuyTienMat,
-        tonQuyNganHang
-      },
-      congNo: {
-        noPhaiThuKH,
-        noPhaiTraNCC
-      },
-      tonKho: {
-        soLuongMayConHang: mayImeis.length,
-        giaTriKhoMay,
-        giaTriKhoPhuKien,
-        tongGiaTriKho
-      },
-      kinhDoanh: {
-        tongDoanhThuBanHang,
-        tongHoaDon: hoaDons.length
-      }
+      soQuy: { tongThu, tongChi, tonQuy, tonQuyTienMat, tonQuyNganHang },
+      congNo: { noPhaiThuKH, noPhaiTraNCC },
+      tonKho: { soLuongMayConHang, giaTriKhoMay, giaTriKhoPhuKien, tongGiaTriKho },
+      kinhDoanh: { tongDoanhThuBanHang, tongHoaDon }
     };
   }
 }

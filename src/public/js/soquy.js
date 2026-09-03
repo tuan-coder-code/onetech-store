@@ -127,8 +127,8 @@ function renderGiaoDichTable(list) {
         <td>${badgeType}</td>
         <td class="text-end fw-bold ${amountColor}">${amountPrefix}${formatCurrency(item.soTien)}</td>
         <td><span class="badge bg-light text-dark border">${item.hinhThuc}</span></td>
-        <td><div class="fw-semibold text-truncate" style="max-width: 280px;" title="${item.noiDung || ''}">${item.noiDung || '---'}</div></td>
-        <td><span class="badge bg-secondary-subtle text-dark">${item.lienKet || '---'}</span></td>
+        <td><div class="fw-semibold text-truncate" style="max-width: 280px;" title="${escapeHtml(item.noiDung || '')}">${escapeHtml(item.noiDung || '---')}</div></td>
+        <td><span class="badge bg-secondary-subtle text-dark">${escapeHtml(item.lienKet || '---')}</span></td>
         <td class="text-center">
           <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="viewTransactionDetail('${item._id}', '${item.loai}')" title="Xem chi tiết">
             <i class="bi bi-eye"></i>
@@ -173,8 +173,8 @@ async function loadDanhSachThu() {
         </td>
         <td class="text-end fw-bold text-success">+${formatCurrency(pt.soTien)}</td>
         <td><span class="badge bg-success-subtle text-success">${pt.hinhThuc}</span></td>
-        <td><span class="badge bg-light text-dark border">${lienKet}</span></td>
-        <td><div class="text-muted small text-truncate" style="max-width: 250px;">${pt.ghiChu || '---'}</div></td>
+        <td><span class="badge bg-light text-dark border">${escapeHtml(lienKet)}</span></td>
+        <td><div class="text-muted small text-truncate" style="max-width: 250px;">${escapeHtml(pt.ghiChu || '---')}</div></td>
         <td class="text-center">
           <button class="btn btn-sm btn-outline-primary" onclick="viewTransactionDetail('${pt._id}', 'THU')">
             <i class="bi bi-receipt me-1"></i> Chi tiết
@@ -218,8 +218,8 @@ async function loadDanhSachChi() {
         </td>
         <td class="text-end fw-bold text-danger">-${formatCurrency(pc.soTien)}</td>
         <td><span class="badge bg-danger-subtle text-danger">${pc.hinhThuc}</span></td>
-        <td><span class="badge bg-light text-dark border">${lienKet}</span></td>
-        <td><div class="text-muted small text-truncate" style="max-width: 250px;">${pc.lyDo || '---'}</div></td>
+        <td><span class="badge bg-light text-dark border">${escapeHtml(lienKet)}</span></td>
+        <td><div class="text-muted small text-truncate" style="max-width: 250px;">${escapeHtml(pc.lyDo || '---')}</div></td>
         <td class="text-center">
           <button class="btn btn-sm btn-outline-danger" onclick="viewTransactionDetail('${pc._id}', 'CHI')">
             <i class="bi bi-receipt me-1"></i> Chi tiết
@@ -316,16 +316,16 @@ async function viewTransactionDetail(id, type) {
       ${isThu ? `
         <div class="row g-2 mb-2">
           <div class="col-6 text-muted">Nội dung thu:</div>
-          <div class="col-6 text-end">${item.ghiChu || '---'}</div>
+          <div class="col-6 text-end">${escapeHtml(item.ghiChu || '---')}</div>
         </div>
         ${item.hoaDon ? `<div class="row g-2 mb-2"><div class="col-6 text-muted">Hóa đơn:</div><div class="col-6 text-end font-monospace">${item.hoaDon.soHD || item.hoaDon._id}</div></div>` : ''}
         ${item.donDatHang ? `<div class="row g-2 mb-2"><div class="col-6 text-muted">Đơn đặt trước:</div><div class="col-6 text-end font-monospace">${item.donDatHang.maDonDat || item.donDatHang._id}</div></div>` : ''}
       ` : `
         <div class="row g-2 mb-2">
           <div class="col-6 text-muted">Lý do chi:</div>
-          <div class="col-6 text-end">${item.lyDo || '---'}</div>
+          <div class="col-6 text-end">${escapeHtml(item.lyDo || '---')}</div>
         </div>
-        ${item.maDT ? `<div class="row g-2 mb-2"><div class="col-6 text-muted">Đối tượng nhận:</div><div class="col-6 text-end font-monospace">${item.maDT}</div></div>` : ''}
+        ${item.maDT ? `<div class="row g-2 mb-2"><div class="col-6 text-muted">Đối tượng nhận:</div><div class="col-6 text-end font-monospace">${escapeHtml(item.maDT)}</div></div>` : ''}
         ${item.phieuNhap ? `<div class="row g-2 mb-2"><div class="col-6 text-muted">Phiếu nhập kho:</div><div class="col-6 text-end font-monospace">${item.phieuNhap.soPN || item.phieuNhap._id}</div></div>` : ''}
         ${item.donDatHang ? `<div class="row g-2 mb-2"><div class="col-6 text-muted">Hoàn cọc đơn:</div><div class="col-6 text-end font-monospace">${item.donDatHang.maDonDat || item.donDatHang._id}</div></div>` : ''}
       `}

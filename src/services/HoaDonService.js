@@ -597,18 +597,27 @@ class HoaDonService extends BaseService {
       if (denNgay) filter.ngayLap.$lte = new Date(denNgay);
     }
 
+    const stats = await HoaDon.aggregate([
+      { $match: filter },
+      { $group: {
+          _id: "$nhanVien",
+          soHoaDon: { $sum: 1 },
+          tongDoanhThu: { $sum: { $ifNull: ["$tongTien", 0] } },
+          tongThucThu: { $sum: { $ifNull: ["$soTienThanhToan", 0] } }
+      }}
+    ]);
+    const statsMap = new Map(stats.map(s => [s._id ? s._id.toString() : 'null', s]));
+
     const danhSachNhanVien = await NhanVien.find({
       trangThai: { $ne: 'Khóa' },
       vaiTro: { $in: ['NV bán hàng', 'Thu ngân', 'Quản lý'] }
-    }).select('_id hoTen tenDangNhap vaiTro');
-
-    const hoaDons = await HoaDon.find(filter);
+    }).select('_id hoTen tenDangNhap vaiTro').lean();
 
     const nhanVienStats = danhSachNhanVien.map(nv => {
-      const hdList = hoaDons.filter(hd => hd.nhanVien && hd.nhanVien.toString() === nv._id.toString());
-      const tongDoanhThu = hdList.reduce((sum, hd) => sum + (hd.tongTien || 0), 0);
-      const tongThucThu = hdList.reduce((sum, hd) => sum + (hd.soTienThanhToan || 0), 0);
-      const soHoaDon = hdList.length;
+      const s = statsMap.get(nv._id.toString()) || {};
+      const soHoaDon = s.soHoaDon || 0;
+      const tongDoanhThu = s.tongDoanhThu || 0;
+      const tongThucThu = s.tongThucThu || 0;
       const giaTriTrungBinh = soHoaDon > 0 ? Math.round(tongDoanhThu / soHoaDon) : 0;
 
       return {
@@ -634,43 +643,49 @@ class HoaDonService extends BaseService {
    */
   async getTopSanPham(query = {}) {
     const limit = parseInt(query.limit) || 10;
-    const ctMayList = await CT_HoaDon_May.find().populate({
-      path: 'hoaDon',
-      match: { trangThai: { $ne: 'Da huy' } }
-    });
+    
+    const pipeline = [
+      {
+        $lookup: {
+          from: 'HOADON',
+          localField: 'hoaDon',
+          foreignField: '_id',
+          as: 'hoaDonDoc'
+        }
+      },
+      { $unwind: '$hoaDonDoc' },
+      { $match: { 'hoaDonDoc.trangThai': { $ne: 'Da huy' } } },
+      {
+        $lookup: {
+          from: 'MAY_IMEI',
+          localField: 'imei',
+          foreignField: 'imei',
+          as: 'mayImeiDoc'
+        }
+      },
+      { $unwind: '$mayImeiDoc' },
+      {
+        $group: {
+          _id: '$mayImeiDoc.sanPham',
+          soLuongBan: { $sum: 1 },
+          doanhThu: { $sum: { $ifNull: ['$donGiaBan', 0] } }
+        }
+      },
+      { $sort: { soLuongBan: -1 } },
+      { $limit: limit }
+    ];
 
-    // Lấy thông tin model máy từ MayImei
-    const imeis = ctMayList.filter(item => item.hoaDon).map(item => item.imei);
-    const mayList = await MayImei.find({ imei: { $in: imeis } }).populate('sanPham');
-    const imeiToSPMap = {};
-    mayList.forEach(m => {
-      if (m.sanPham) {
-        imeiToSPMap[m.imei] = m.sanPham;
-      }
-    });
+    const stats = await CT_HoaDon_May.aggregate(pipeline);
+    await mongoose.model('SanPham').populate(stats, { path: '_id', select: 'tenMay hang giaBan' });
 
-    const productStats = {};
-    ctMayList.forEach(ct => {
-      if (!ct.hoaDon) return;
-      const sp = imeiToSPMap[ct.imei];
-      if (!sp) return;
-      const spId = sp._id.toString();
-      if (!productStats[spId]) {
-        productStats[spId] = {
-          sanPhamId: sp._id,
-          tenMay: sp.tenMay,
-          hang: sp.hang,
-          giaBan: sp.giaBan,
-          soLuongBan: 0,
-          doanhThu: 0
-        };
-      }
-      productStats[spId].soLuongBan += 1;
-      productStats[spId].doanhThu += (ct.donGiaBan || sp.giaBan || 0);
-    });
-
-    const result = Object.values(productStats).sort((a, b) => b.soLuongBan - a.soLuongBan).slice(0, limit);
-    return result;
+    return stats.map(s => ({
+      sanPhamId: s._id ? s._id._id : null,
+      tenMay: s._id ? s._id.tenMay : 'N/A',
+      hang: s._id ? s._id.hang : 'N/A',
+      giaBan: s._id ? s._id.giaBan : 0,
+      soLuongBan: s.soLuongBan,
+      doanhThu: s.doanhThu
+    }));
   }
 }
 

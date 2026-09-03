@@ -126,7 +126,8 @@ class ThanhToanService extends BaseService {
         .populate('congNo')
         .sort({ ngayThu: -1, createdAt: -1 })
         .skip(skip)
-        .limit(limit),
+        .limit(limit)
+        .lean(),
       PhieuThu.countDocuments(filter)
     ]);
 
@@ -189,7 +190,8 @@ class ThanhToanService extends BaseService {
         .populate('donDatHang')
         .sort({ ngayChi: -1, createdAt: -1 })
         .skip(skip)
-        .limit(limit),
+        .limit(limit)
+        .lean(),
       PhieuChi.countDocuments(filter)
     ]);
 
