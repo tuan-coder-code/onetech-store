@@ -1,26 +1,37 @@
 let myChart = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Mặc định lọc tháng hiện tại
+  // Điền danh sách năm
   const today = new Date();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const year = today.getFullYear();
+  const currentYear = today.getFullYear();
+  const namSelect = document.getElementById('filterNam');
+  if (namSelect) {
+    for (let y = currentYear - 5; y <= currentYear + 1; y++) {
+      namSelect.innerHTML += `<option value="${y}">${y}</option>`;
+    }
+  }
+
+  // Mặc định lọc tháng hiện tại
+  const month = String(today.getMonth() + 1);
+  const year = String(currentYear);
   
-  document.getElementById('filterThang').value = `${year}-${month}`;
+  if (document.getElementById('filterThang')) document.getElementById('filterThang').value = month;
+  if (document.getElementById('filterNam')) document.getElementById('filterNam').value = year;
   
   loadAllReports();
 });
 
 function getFilterParams() {
-  const thangStr = document.getElementById('filterThang').value; // "YYYY-MM"
-  if (!thangStr) return {};
+  const thang = document.getElementById('filterThang')?.value;
+  const nam = document.getElementById('filterNam')?.value;
   
-  const [year, month] = thangStr.split('-');
+  if (!thang || !nam) return {};
   
-  const tuNgay = `${year}-${month}-01`;
+  const paddedMonth = thang.padStart(2, '0');
+  const tuNgay = `${nam}-${paddedMonth}-01`;
   
-  const denNgayDate = new Date(year, month, 0);
-  const denNgay = `${year}-${month}-${String(denNgayDate.getDate()).padStart(2, '0')}`;
+  const denNgayDate = new Date(nam, thang, 0);
+  const denNgay = `${nam}-${paddedMonth}-${String(denNgayDate.getDate()).padStart(2, '0')}`;
   
   return { tuNgay, denNgay };
 }
@@ -127,13 +138,13 @@ async function loadTopSanPham() {
   const res = await api.get('/bao-cao/top-san-pham', params);
   
   const listEl = document.getElementById('topSanPhamList');
-  if (!res.success || !res.data || res.data.length === 0) {
+  if (!res.success || !res.data || !res.data.topTheoDoanhThu || res.data.topTheoDoanhThu.length === 0) {
     listEl.innerHTML = '<li class="list-group-item text-center py-4 text-muted">Không có dữ liệu</li>';
     return;
   }
   
   let html = '';
-  res.data.forEach((item, index) => {
+  res.data.topTheoDoanhThu.forEach((item, index) => {
     const badgeColor = index === 0 ? 'bg-danger' : (index === 1 ? 'bg-warning' : (index === 2 ? 'bg-info' : 'bg-secondary'));
     html += `
       <li class="list-group-item d-flex justify-content-between align-items-center p-3">
