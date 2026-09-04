@@ -1091,3 +1091,44 @@ window.printInvoiceReceipt = printInvoiceReceipt;
 window.selectPreOrder = selectPreOrder;
 window.loadReportsData = loadReportsData;
 window.shortcutAction = shortcutAction;
+
+
+// Lắng nghe sự kiện thêm khách hàng nhanh
+document.addEventListener('DOMContentLoaded', () => {
+  const btnSubmitQuickCustomer = document.getElementById('btnSubmitQuickCustomer');
+  if (btnSubmitQuickCustomer) {
+    btnSubmitQuickCustomer.addEventListener('click', async () => {
+      const hoTen = document.getElementById('quickKhHoTen')?.value.trim();
+      const sdt = document.getElementById('quickKhSdt')?.value.trim();
+      const email = document.getElementById('quickKhEmail')?.value.trim();
+      const diaChi = document.getElementById('quickKhDiaChi')?.value.trim();
+
+      if (!hoTen) {
+        showToast('Vui lòng nhập họ tên khách hàng', 'warning');
+        return;
+      }
+      if (!sdt || !/^[0-9]{10}$/.test(sdt)) {
+        showToast('Số điện thoại không hợp lệ (yêu cầu 10 chữ số)', 'warning');
+        return;
+      }
+
+      const body = { hoTen, sdt, email, diaChi };
+      const res = await api.post('/khach-hang', body);
+      
+      if (res.success && res.data) {
+        showToast('Thêm khách hàng thành công', 'success');
+        
+        // Cập nhật lại dropdown và chọn khách hàng vừa tạo
+        await loadCustomers(res.data._id);
+        
+        // Ẩn modal và reset form
+        const modalEl = document.getElementById('quickCreateCustomerModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+        document.getElementById('quickCreateCustomerForm')?.reset();
+      } else {
+        showToast(res.message || 'Lỗi khi thêm khách hàng', 'danger');
+      }
+    });
+  }
+});

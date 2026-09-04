@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const hoaDonSchema = new mongoose.Schema({
   soHD: { type: String, unique: true, index: true },
-  khachHang: { type: mongoose.Schema.Types.ObjectId, ref: 'KhachHang' },
+  khachHang: { type: mongoose.Schema.Types.ObjectId, ref: 'KhachHang', required: true },
   nhanVien: { type: mongoose.Schema.Types.ObjectId, ref: 'NhanVien', required: true },
   donDatHang: { type: mongoose.Schema.Types.ObjectId, ref: 'DonDatHangTruoc' },
   khuyenMai: { type: mongoose.Schema.Types.ObjectId, ref: 'KhuyenMai' }, // Khóa ngoại tới KhuyenMai

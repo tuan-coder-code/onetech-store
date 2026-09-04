@@ -184,11 +184,14 @@
 
                 <!-- Khách hàng & Hình thức thanh toán -->
                 <div class="mb-3">
-                  <label class="form-label small fw-semibold">Khách hàng</label>
+                  <label class="form-label small fw-semibold">Khách hàng <span class="text-danger">*</span></label>
                   <div class="input-group">
-                    <select id="selectKhachHang" class="form-select">
-                      <option value="">-- Khách vãng lai (Không lưu) --</option>
+                    <select id="selectKhachHang" class="form-select" required>
+                      <option value="">-- Chọn Khách hàng --</option>
                     </select>
+                    <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#quickCreateCustomerModal" title="Thêm nhanh Khách hàng">
+                      <i class="bi bi-person-plus"></i>
+                    </button>
                   </div>
                 </div>
 
@@ -214,7 +217,7 @@
                     <span class="text-muted" style="font-size: 0.75rem;">Nhập 0 nếu không giảm</span>
                   </label>
                   <div class="input-group input-group-sm">
-                    <input type="number" id="inputSoTienGiam" class="form-control" placeholder="0" min="0" value="0">
+                    <input type="text" id="inputSoTienGiam" class="format-currency form-control" placeholder="0" min="0" value="0">
                     <span class="input-group-text">đ</span>
                   </div>
                 </div>
@@ -421,6 +424,42 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Thêm Nhanh Khách Hàng -->
+<div class="modal fade" id="quickCreateCustomerModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold"><i class="bi bi-person-plus text-primary me-2"></i>Thêm nhanh Khách hàng</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="quickCreateCustomerForm">
+          <div class="mb-3">
+            <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
+            <input type="text" id="quickKhHoTen" class="form-control" placeholder="Tên khách hàng" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+            <input type="text" id="quickKhSdt" class="form-control" placeholder="Số điện thoại" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" id="quickKhEmail" class="form-control" placeholder="Email">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Địa chỉ</label>
+            <input type="text" id="quickKhDiaChi" class="form-control" placeholder="Địa chỉ">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+        <button type="button" id="btnSubmitQuickCustomer" class="btn btn-primary">Lưu Khách hàng</button>
       </div>
     </div>
   </div>
