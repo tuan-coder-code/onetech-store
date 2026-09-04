@@ -183,7 +183,7 @@ async function initSanPhamForm() {
       document.getElementById('inputTenMay').value = sp.tenMay || '';
       document.getElementById('selectDanhMuc').value = sp.danhMuc?._id || sp.danhMuc || '';
       document.getElementById('inputHang').value = sp.hang || '';
-      document.getElementById('inputGiaBan').value = sp.giaBan || '';
+      (document.getElementById('inputGiaBan').value || '').replace(/[^\\d]/g, '')= sp.giaBan || '';
       document.getElementById('inputSoThangBH').value = sp.soThangBH || 12;
       document.getElementById('inputMoTa').value = sp.moTa || '';
     } else {
@@ -201,7 +201,7 @@ async function initSanPhamForm() {
         tenMay: document.getElementById('inputTenMay').value.trim(),
         danhMuc: document.getElementById('selectDanhMuc').value,
         hang: document.getElementById('inputHang').value.trim(),
-        giaBan: Number(document.getElementById('inputGiaBan').value),
+        giaBan: Number((document.getElementById('inputGiaBan').value || '').replace(/[^\\d]/g, '')),
         soThangBH: Number(document.getElementById('inputSoThangBH').value) || 12,
         moTa: document.getElementById('inputMoTa').value.trim()
       };

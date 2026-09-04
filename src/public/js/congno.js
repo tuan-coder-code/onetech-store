@@ -140,7 +140,7 @@ function openPaymentModal(id) {
   document.getElementById('lblPaymentConLai').textContent = formatCurrency(conLai);
 
   document.getElementById('inputSoTienThanhToan').max = conLai;
-  document.getElementById('inputSoTienThanhToan').value = conLai;
+  (document.getElementById('inputSoTienThanhToan').value || '').replace(/[^\\d]/g, '')= conLai;
   document.getElementById('inputGhiChuThanhToan').value = isKH ? `Thu tiền nợ từ ${ten}` : `Trả tiền hàng nợ ${ten}`;
 
   const modal = new bootstrap.Modal(document.getElementById('modalThanhToanCongNo'));
@@ -150,13 +150,13 @@ function openPaymentModal(id) {
 function fillAllRemainingDebt() {
   if (!currentPaymentDebt) return;
   const conLai = Math.max(0, (currentPaymentDebt.soTienNo || 0) - (currentPaymentDebt.soTienDaTra || 0));
-  document.getElementById('inputSoTienThanhToan').value = conLai;
+  (document.getElementById('inputSoTienThanhToan').value || '').replace(/[^\\d]/g, '')= conLai;
 }
 
 async function handlePaymentSubmit(e) {
   e.preventDefault();
   const id = document.getElementById('paymentCongNoId').value;
-  const soTien = Number(document.getElementById('inputSoTienThanhToan').value);
+  const soTien = Number((document.getElementById('inputSoTienThanhToan').value || '').replace(/[^\\d]/g, ''));
   const hinhThuc = document.getElementById('inputHinhThucThanhToan').value;
   const ghiChu = document.getElementById('inputGhiChuThanhToan').value.trim();
 

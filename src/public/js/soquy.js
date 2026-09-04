@@ -244,7 +244,7 @@ function openCreateChiModal() {
 
 async function handleCreateThu(e) {
   e.preventDefault();
-  const soTien = Number(document.getElementById('inputThuSoTien').value);
+  const soTien = Number((document.getElementById('inputThuSoTien').value || '').replace(/[^\\d]/g, ''));
   const hinhThuc = document.getElementById('inputThuHinhThuc').value;
   const ghiChu = document.getElementById('inputThuGhiChu').value.trim();
 
@@ -265,7 +265,7 @@ async function handleCreateThu(e) {
 
 async function handleCreateChi(e) {
   e.preventDefault();
-  const soTien = Number(document.getElementById('inputChiSoTien').value);
+  const soTien = Number((document.getElementById('inputChiSoTien').value || '').replace(/[^\\d]/g, ''));
   const hinhThuc = document.getElementById('inputChiHinhThuc').value;
   const maDT = document.getElementById('inputChiMaDT').value.trim();
   const lyDo = document.getElementById('inputChiLyDo').value.trim();

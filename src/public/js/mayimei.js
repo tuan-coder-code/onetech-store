@@ -189,7 +189,7 @@ async function initMayImeiForm() {
       const m = res.mayImei;
       document.getElementById('selectSanPham').value = m.sanPham?._id || m.sanPham || '';
       document.getElementById('inputImeiReadonly').value = m.imei || '';
-      document.getElementById('inputGiaNhap').value = m.giaNhap || '';
+      (document.getElementById('inputGiaNhap').value || '').replace(/[^\\d]/g, '')= m.giaNhap || '';
       document.getElementById('selectTrangThai').value = m.trangThai || 'Con hang';
       document.getElementById('inputMauSac').value = m.mauSac || '';
       document.getElementById('inputDungLuong').value = m.dungLuong || '';
@@ -205,7 +205,7 @@ async function initMayImeiForm() {
       e.preventDefault();
 
       const sanPham = document.getElementById('selectSanPham').value;
-      const giaNhap = Number(document.getElementById('inputGiaNhap').value);
+      const giaNhap = Number((document.getElementById('inputGiaNhap').value || '').replace(/[^\\d]/g, ''));
       const trangThai = document.getElementById('selectTrangThai').value;
       const mauSac = document.getElementById('inputMauSac').value.trim();
       const dungLuong = document.getElementById('inputDungLuong').value.trim();

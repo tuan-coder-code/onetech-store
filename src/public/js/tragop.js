@@ -127,7 +127,7 @@ function calculateTraGop() {
   if (!opt || !opt.value) return;
   
   const tongTien = parseFloat(opt.getAttribute('data-tong')) || 0;
-  const traTruoc = parseFloat(document.getElementById('soTienTraTruoc').value) || 0;
+  const traTruoc = parseFloat((document.getElementById('soTienTraTruoc').value || '').replace(/[^\\d]/g, '')) || 0;
   const soKy = parseInt(document.getElementById('soKy').value) || 1;
   
   document.getElementById('hdInfo').innerHTML = `Tổng tiền hóa đơn: <strong>${tongTien.toLocaleString('vi-VN')} đ</strong>`;
@@ -150,7 +150,7 @@ function calculateTraGop() {
 
 async function submitTaoHopDong() {
   const hoaDonId = document.getElementById('hoadonSelect').value;
-  const soTienTraTruoc = document.getElementById('soTienTraTruoc').value;
+  const soTienTraTruoc = (document.getElementById('soTienTraTruoc').value || '').replace(/[^\\d]/g, '');
   const soKy = document.getElementById('soKy').value;
   const ghiChu = document.getElementById('ghiChu').value;
   

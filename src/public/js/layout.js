@@ -746,9 +746,42 @@ document.addEventListener('keydown', (e) => {
 window.enhanceAllSelects = enhanceAllSelects;
 window.enhanceSelect = enhanceSelect;
 
+// =========================================
+// CURRENCY INPUT FORMATTING
+// =========================================
+function applyCurrencyFormat() {
+  document.querySelectorAll('input.format-currency').forEach(input => {
+    // Ngăn chặn format nhiều lần nếu đã gắn
+    if (input.dataset.currencyEnhanced) return;
+    input.dataset.currencyEnhanced = 'true';
+
+    input.addEventListener('input', function(e) {
+      // Chỉ giữ lại số
+      let value = this.value.replace(/[^\d]/g, '');
+      if (value) {
+        this.value = parseInt(value, 10).toLocaleString('vi-VN');
+      } else {
+        this.value = '';
+      }
+    });
+
+    // Nếu đã có giá trị sẵn (VD edit form), format ngay
+    if (input.value) {
+      let value = input.value.replace(/[^\d]/g, '');
+      if (value) {
+        input.value = parseInt(value, 10).toLocaleString('vi-VN');
+      }
+    }
+  });
+}
+window.applyCurrencyFormat = applyCurrencyFormat;
+
 document.addEventListener('DOMContentLoaded', () => {
   initLayout();
   enhanceAllSelects();
+  applyCurrencyFormat();
   setTimeout(enhanceAllSelects, 300);
   setTimeout(enhanceAllSelects, 1000);
+  setTimeout(applyCurrencyFormat, 300);
+  setTimeout(applyCurrencyFormat, 1000);
 });

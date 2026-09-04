@@ -380,7 +380,7 @@ async function handleXuatLinhKien(e) {
   const pbhId = document.getElementById('xuatLkPbhId').value;
   const linhKienId = document.getElementById('selectLinhKien').value;
   const soLuong = document.getElementById('inputLkSoLuong').value;
-  const donGia = document.getElementById('inputLkDonGia').value;
+  const donGia = (document.getElementById('inputLkDonGia').value || '').replace(/[^\\d]/g, '');
 
   if (!linhKienId) {
     showToast('Vui lòng chọn linh kiện', 'warning');

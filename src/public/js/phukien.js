@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const body = {
         tenPK: document.getElementById('inputAddTenPK').value.trim(),
         danhMuc: document.getElementById('selectAddDanhMuc').value,
-        giaBan: Number(document.getElementById('inputAddGiaBan').value),
+        giaBan: Number((document.getElementById('inputAddGiaBan').value || '').replace(/[^\\d]/g, '')),
         soLuongTon: Number(document.getElementById('inputAddSoLuongTon').value) || 0
       };
 
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const body = {
         tenPK: document.getElementById('inputEditTenPK').value.trim(),
         danhMuc: document.getElementById('selectEditDanhMuc').value,
-        giaBan: Number(document.getElementById('inputEditGiaBan').value),
+        giaBan: Number((document.getElementById('inputEditGiaBan').value || '').replace(/[^\\d]/g, '')),
         soLuongTon: Number(document.getElementById('inputEditSoLuongTon').value) || 0
       };
 
@@ -191,7 +191,7 @@ async function openEditPKModal(id) {
   document.getElementById('inputEditPKId').value = pk._id;
   document.getElementById('inputEditTenPK').value = pk.tenPK;
   document.getElementById('selectEditDanhMuc').value = pk.danhMuc?._id || pk.danhMuc || '';
-  document.getElementById('inputEditGiaBan').value = pk.giaBan;
+  (document.getElementById('inputEditGiaBan').value || '').replace(/[^\\d]/g, '')= pk.giaBan;
   document.getElementById('inputEditSoLuongTon').value = pk.soLuongTon;
 
   if (editPKModalInstance) editPKModalInstance.show();
