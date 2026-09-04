@@ -29,31 +29,33 @@ async function loadDanhSachDon(page = 1, search = '') {
     return;
   }
   
-  const { items, pagination } = res.data;
-  dsDon = items;
+  const { donDatHangNCCs, items, pagination } = res.data;
+  const listDon = donDatHangNCCs || items || [];
+  dsDon = listDon;
   
   // Custom thống kê (có thể làm API riêng hoặc tính tạm trên client nếu list đủ)
   // Demo stat mock
-  document.getElementById('statChoDuyet').textContent = items.filter(i => i.trangThai === 'Chờ duyệt').length || 0;
-  document.getElementById('statDangGiao').textContent = items.filter(i => i.trangThai === 'Đang giao').length || 0;
-  document.getElementById('statHoanThanh').textContent = items.filter(i => i.trangThai === 'Hoàn thành').length || 0;
-  document.getElementById('statHuy').textContent = items.filter(i => i.trangThai === 'Đã hủy').length || 0;
+  document.getElementById('statChoDuyet').textContent = listDon.filter(i => i.trangThai === 'Cho duyet').length || 0;
+  document.getElementById('statDangGiao').textContent = listDon.filter(i => i.trangThai === 'Dang giao').length || 0;
+  document.getElementById('statHoanThanh').textContent = listDon.filter(i => i.trangThai === 'Da nhan hang').length || 0;
+  document.getElementById('statHuy').textContent = listDon.filter(i => i.trangThai === 'Da huy').length || 0;
   
-  if (items.length === 0) {
+  if (listDon.length === 0) {
     tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted"><i class="bi bi-inbox fs-3 d-block mb-1"></i> Chưa có đơn đặt hàng nào</td></tr>`;
     document.getElementById('paginationContainer').innerHTML = '';
     return;
   }
   
   let html = '';
-  items.forEach(don => {
+  listDon.forEach(don => {
     let badgeClass = 'bg-secondary';
+    let textTrangThai = don.trangThai;
     switch (don.trangThai) {
-      case 'Chờ duyệt': badgeClass = 'bg-warning text-dark'; break;
-      case 'Đã duyệt': badgeClass = 'bg-primary'; break;
-      case 'Đang giao': badgeClass = 'bg-info'; break;
-      case 'Hoàn thành': badgeClass = 'bg-success'; break;
-      case 'Đã hủy': badgeClass = 'bg-danger'; break;
+      case 'Cho duyet': badgeClass = 'bg-warning text-dark'; textTrangThai = 'Chờ duyệt'; break;
+      case 'Da duyet': badgeClass = 'bg-primary'; textTrangThai = 'Đã duyệt'; break;
+      case 'Dang giao': badgeClass = 'bg-info'; textTrangThai = 'Đang giao'; break;
+      case 'Da nhan hang': badgeClass = 'bg-success'; textTrangThai = 'Đã nhận hàng'; break;
+      case 'Da huy': badgeClass = 'bg-danger'; textTrangThai = 'Đã hủy'; break;
     }
     
     html += `
@@ -65,7 +67,7 @@ async function loadDanhSachDon(page = 1, search = '') {
         <td>${don.nguoiLap?.hoTen || 'N/A'}</td>
         <td>${new Date(don.ngayHenGiao).toLocaleDateString('vi-VN')}</td>
         <td class="text-danger fw-bold">${don.tongTien.toLocaleString('vi-VN')} đ</td>
-        <td><span class="badge ${badgeClass}">${don.trangThai}</span></td>
+        <td><span class="badge ${badgeClass}">${textTrangThai}</span></td>
         <td class="text-end">
           <button class="btn btn-sm btn-light" onclick="xemChiTiet('${don._id}')"><i class="bi bi-eye"></i> Chi tiết</button>
         </td>
@@ -94,14 +96,15 @@ async function openTaoDonModal() {
   if (resNCC.success) {
     const nccSelect = document.getElementById('nccSelect');
     nccSelect.innerHTML = '<option value="">-- Chọn NCC --</option>';
-    resNCC.data.items.forEach(ncc => {
+    const nccList = resNCC.data.nhaCungCaps || resNCC.data.items || [];
+    nccList.forEach(ncc => {
       nccSelect.innerHTML += `<option value="${ncc._id}">${ncc.tenNCC}</option>`;
     });
     if (window.enhanceSelect) window.enhanceSelect(nccSelect);
   }
   
   if (resSP.success) {
-    sanPhamList = resSP.data.items;
+    sanPhamList = resSP.data.sanPhams || resSP.data.items || [];
   }
   
   addDongChiTiet();
@@ -279,14 +282,14 @@ async function xemChiTiet(id) {
   // Nút hành động
   let footerHtml = '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>';
   
-  if (don.trangThai === 'Chờ duyệt' && isQuanLy) {
+  if (don.trangThai === 'Cho duyet' && isQuanLy) {
     footerHtml += `
-      <button type="button" class="btn btn-danger" onclick="updateTrangThai('${don._id}', 'Đã hủy')"><i class="bi bi-x-circle"></i> Từ Chối</button>
+      <button type="button" class="btn btn-danger" onclick="updateTrangThai('${don._id}', 'Da huy')"><i class="bi bi-x-circle"></i> Từ Chối</button>
       <button type="button" class="btn btn-success" onclick="duyetDon('${don._id}')"><i class="bi bi-check-circle"></i> Duyệt Đơn</button>
     `;
-  } else if (don.trangThai === 'Đã duyệt' && isQuanLy) {
+  } else if (don.trangThai === 'Da duyet' && isQuanLy) {
     footerHtml += `
-      <button type="button" class="btn btn-info text-white" onclick="updateTrangThai('${don._id}', 'Đang giao')"><i class="bi bi-truck"></i> Chuyển Đang Giao</button>
+      <button type="button" class="btn btn-info text-white" onclick="updateTrangThai('${don._id}', 'Dang giao')"><i class="bi bi-truck"></i> Chuyển Đang Giao</button>
     `;
   }
   // Việc nhập kho hoàn thành đơn sẽ do thủ kho nhập kho bằng phiếu nhập và chọn đơn NCC.
