@@ -24,6 +24,10 @@ const DieuChinhKho = require('./DieuChinhKho');
 const PhieuBaoHanh = require('./PhieuBaoHanh');
 const CT_PBH_LinhKien = require('./CT_PBH_LinhKien');
 const PhieuDoiTra = require('./PhieuDoiTra');
+const KhuyenMai = require('./KhuyenMai');
+const DonDatHangNCC = require('./DonDatHangNCC');
+const CT_DonDatHangNCC = require('./CT_DonDatHangNCC');
+const PhieuHoanTien = require('./PhieuHoanTien');
 
 module.exports = {
   NhanVien,
@@ -51,5 +55,10 @@ module.exports = {
   DieuChinhKho,
   PhieuBaoHanh,
   CT_PBH_LinhKien,
-  PhieuDoiTra
+  PhieuDoiTra,
+  KhuyenMai,
+  DonDatHangNCC,
+  CT_DonDatHangNCC,
+  PhieuHoanTien
 };
+

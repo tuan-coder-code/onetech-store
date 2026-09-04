@@ -22,8 +22,8 @@ const requireRole = (...roles) => {
     }
 
     const userRole = req.session.user.vaiTro;
-    // Quản lý luôn có quyền cao nhất
-    if (userRole === 'Quản lý' || roles.includes(userRole)) {
+    // Admin và Quản lý luôn có quyền cao nhất
+    if (userRole === 'Admin' || userRole === 'Quản lý' || roles.includes(userRole)) {
       return next();
     }
 

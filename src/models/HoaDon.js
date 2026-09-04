@@ -5,6 +5,8 @@ const hoaDonSchema = new mongoose.Schema({
   khachHang: { type: mongoose.Schema.Types.ObjectId, ref: 'KhachHang' },
   nhanVien: { type: mongoose.Schema.Types.ObjectId, ref: 'NhanVien', required: true },
   donDatHang: { type: mongoose.Schema.Types.ObjectId, ref: 'DonDatHangTruoc' },
+  khuyenMai: { type: mongoose.Schema.Types.ObjectId, ref: 'KhuyenMai' }, // Khóa ngoại tới KhuyenMai
+  khuyenMaiGiam: { type: Number, default: 0, min: 0 }, // Số tiền giảm từ KhuyenMai
   tienCocDaTru: { type: Number, default: 0, min: 0 },
   soTienGiam: { type: Number, default: 0, min: 0 },
   soTienThanhToan: { type: Number, default: 0, min: 0 },

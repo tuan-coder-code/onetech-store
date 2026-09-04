@@ -21,6 +21,9 @@ const congNoRoutes = require('./congNoRoutes');
 const traGopRoutes = require('./traGopRoutes');
 const kiemKeRoutes = require('./kiemKeRoutes');
 const baoCaoRoutes = require('./baoCaoRoutes');
+const adminRoutes = require('./adminRoutes');
+const khuyenMaiRoutes = require('./khuyenMaiRoutes');
+const donDatHangNCCRoutes = require('./donDatHangNCCRoutes');
 
 // Mount toàn bộ REST API endpoints
 router.use('/auth', authRoutes);
@@ -43,5 +46,8 @@ router.use('/cong-no', congNoRoutes);
 router.use('/tra-gop', traGopRoutes);
 router.use('/kiem-ke', kiemKeRoutes);
 router.use('/bao-cao', baoCaoRoutes);
+router.use('/admin', adminRoutes);
+router.use('/khuyen-mai', khuyenMaiRoutes);
+router.use('/don-dat-hang-ncc', donDatHangNCCRoutes);
 
 module.exports = router;
