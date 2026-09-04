@@ -193,7 +193,8 @@ class HoaDonService extends BaseService {
       ghiChu = '',
       donDatHangId,
       donDatHang,
-      maDat
+      maDat,
+      khuyenMaiId
     } = payload;
 
     const targetDatHangId = donDatHangId || donDatHang || maDat;
@@ -321,9 +322,15 @@ class HoaDonService extends BaseService {
 
     const tongTien = tongTienMay + tongTienPhuKien;
 
-    // Giới hạn tiền cọc tối đa bằng tổng tiền hóa đơn
-    const actualTienCocDaTru = Math.min(tienCocDaTru, tongTien);
-    const soTienThanhToan = Math.max(0, tongTien - actualTienCocDaTru);
+    // Tính toán Khuyến mãi (nếu có)
+    const KhuyenMaiService = require('./KhuyenMaiService');
+    const { khuyenMai, soTienGiam } = await KhuyenMaiService.apDungKhuyenMai(khuyenMaiId, tongTien);
+
+    const tongTienSauGiam = Math.max(0, tongTien - soTienGiam);
+
+    // Giới hạn tiền cọc tối đa bằng tổng tiền hóa đơn sau giảm
+    const actualTienCocDaTru = Math.min(tienCocDaTru, tongTienSauGiam);
+    const soTienThanhToan = Math.max(0, tongTienSauGiam - actualTienCocDaTru);
 
     // 5. Cập nhật MayImei -> 'Da ban' (Dùng atomic update với kiểm tra trangThai === 'Con hang' để chống race condition)
     if (imeis.length > 0) {
@@ -357,6 +364,9 @@ class HoaDonService extends BaseService {
     // 7. Tạo HoaDon
     const autoSoHD = 'HD' + Date.now().toString().slice(-8);
     let noteText = ghiChu || '';
+    if (soTienGiam > 0) {
+      noteText = (noteText ? noteText + ' | ' : '') + `Áp dụng KM ${khuyenMai.maKM}: giảm ${soTienGiam.toLocaleString('vi-VN')} đ`;
+    }
     if (actualTienCocDaTru > 0) {
       noteText = (noteText ? noteText + ' | ' : '') + `Đã cấn trừ tiền cọc đơn đặt trước: ${actualTienCocDaTru.toLocaleString('vi-VN')} đ`;
     }
@@ -366,6 +376,8 @@ class HoaDonService extends BaseService {
       khachHang: khachHang || null,
       nhanVien: maNV,
       donDatHang: donDatHangDoc ? donDatHangDoc._id : null,
+      khuyenMai: khuyenMai ? khuyenMai._id : null,
+      khuyenMaiGiam: soTienGiam,
       tienCocDaTru: actualTienCocDaTru,
       soTienThanhToan,
       ngayLap: new Date(),

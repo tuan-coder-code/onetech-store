@@ -73,8 +73,8 @@ class NhaCungCapService extends BaseService {
     const ncc = await this.getNhaCungCapDetail(id);
 
     // 2. Lấy thông tin công nợ hiện tại
-    const congNo = await CongNo.findOne({ loaiDoiTuong: 'NhaCungCap', nhaCungCap: id });
-    const duNo = congNo ? Math.max(0, congNo.soTienNo - congNo.soTienDaTra) : 0;
+    const congNos = await CongNo.find({ loaiDoiTuong: 'NhaCungCap', nhaCungCap: id });
+    const duNo = congNos.reduce((sum, cn) => sum + Math.max(0, cn.soTienNo - cn.soTienDaTra), 0);
 
     // 3. Phân trang và lấy lịch sử Phiếu nhập
     const filter = { nhaCungCap: id };

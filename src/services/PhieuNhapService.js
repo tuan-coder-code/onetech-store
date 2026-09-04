@@ -19,7 +19,8 @@ class PhieuNhapService extends BaseService {
       danhSachMay = [], 
       danhSachPhuKien = [], 
       hinhThucThanhToan = 'Tien mat', 
-      ghiChu = '' 
+      ghiChu = '',
+      donDatHangNCCId
     } = payload;
 
     if (!maNCC || !maNV) {
@@ -54,6 +55,7 @@ class PhieuNhapService extends BaseService {
     const phieuNhap = await PhieuNhap.create({
       nhaCungCap: maNCC,
       nhanVien: maNV,
+      donDatHangNCC: donDatHangNCCId || null,
       tongTien,
       ghiChu
     });
@@ -128,6 +130,27 @@ class PhieuNhapService extends BaseService {
         hinhThuc: hinhThucThanhToan,
         lyDo: 'Thanh toán tiền nhập hàng phiếu ' + phieuNhap.maPN
       });
+    }
+
+    // 7. Đối soát đơn đặt hàng NCC (nếu có)
+    if (donDatHangNCCId) {
+      const DonDatHangNCCService = require('./DonDatHangNCCService');
+      
+      const danhSachNhanMap = {};
+      danhSachMay.forEach(item => {
+        const spId = item.maSP.toString();
+        danhSachNhanMap[spId] = (danhSachNhanMap[spId] || 0) + 1;
+      });
+      // (Bỏ qua phụ kiện vì CT_DonDatHangNCC chỉ link tới SanPham trong ERD)
+
+      const danhSachNhan = Object.keys(danhSachNhanMap).map(spId => ({
+        sanPham: spId,
+        soLuongNhan: danhSachNhanMap[spId]
+      }));
+      
+      if (danhSachNhan.length > 0) {
+        await DonDatHangNCCService.doiSoatNhapKho(donDatHangNCCId, danhSachNhan);
+      }
     }
 
     return phieuNhap;

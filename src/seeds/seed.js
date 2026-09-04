@@ -16,7 +16,11 @@ const {
   CT_HoaDon_PhuKien,
   PhieuXuatKho,
   PhieuBaoHanh,
-  CT_PBH_LinhKien
+  CT_PBH_LinhKien,
+  KhuyenMai,
+  DonDatHangNCC,
+  CT_DonDatHangNCC,
+  PhieuHoanTien
 } = require('../models');
 
 const seedData = async () => {
@@ -43,12 +47,23 @@ const seedData = async () => {
       CT_HoaDon_PhuKien.deleteMany({}),
       PhieuXuatKho.deleteMany({}),
       PhieuBaoHanh.deleteMany({}),
-      CT_PBH_LinhKien.deleteMany({})
+      CT_PBH_LinhKien.deleteMany({}),
+      KhuyenMai.deleteMany({}),
+      DonDatHangNCC.deleteMany({}),
+      CT_DonDatHangNCC.deleteMany({}),
+      PhieuHoanTien.deleteMany({})
     ]);
 
-    // 1. Tạo Tài khoản Nhân viên (Đủ 6 vai trò)
+    // 1. Tạo Tài khoản Nhân viên (Đủ 7 vai trò, bao gồm Admin)
     console.log('[Seed] Đang tạo danh sách Nhân viên...');
-    const [nvAdmin, nvBanHang, nvThuKho, nvThuNgan, nvKeToan, nvKyThuat] = await Promise.all([
+    const [nvSuperAdmin, nvAdmin, nvBanHang, nvThuKho, nvThuNgan, nvKeToan, nvKyThuat] = await Promise.all([
+      NhanVien.create({
+        hoTen: 'System Admin',
+        sdt: '0900000000',
+        vaiTro: 'Admin',
+        tenDangNhap: 'superadmin',
+        matKhau: 'admin123'
+      }),
       NhanVien.create({
         hoTen: 'Nguyễn Quản Lý',
         sdt: '0901111222',
@@ -280,10 +295,26 @@ const seedData = async () => {
       donGia: 0 // Bảo hành miễn phí theo chính sách
     });
 
+    // 10. Tạo dữ liệu Khuyến mãi mẫu
+    console.log('[Seed] Đang tạo Khuyến mãi mẫu...');
+    await KhuyenMai.create({
+      maKM: 'KM-WELCOME-2026',
+      tenKM: 'Giảm giá chào mừng 2026',
+      loaiGiam: 'Phan tram',
+      giaTriGiam: 10, // 10%
+      giaTriToiDa: 500000, // Tối đa 500k
+      ngayBatDau: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // Bắt đầu 5 ngày trước
+      ngayKetThuc: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Kết thúc sau 30 ngày
+      soLuotToiDa: 100,
+      trangThai: 'Hoat dong',
+      ghiChu: 'Chương trình tri ân khách hàng mua sắm'
+    });
+
     console.log('====================================================');
     console.log('✅ SEED DỮ LIỆU MẪU THÀNH CÔNG!');
     console.log('----------------------------------------------------');
     console.log('Danh sách tài khoản demo:');
+    console.log(' 0. Admin System:superadmin / admin123');
     console.log(' 1. Quản lý:    admin    / admin123');
     console.log(' 2. Bán hàng:   banhang  / 123456');
     console.log(' 3. Thủ kho:    thukho   / 123456');

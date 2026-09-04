@@ -30,5 +30,10 @@ module.exports = {
   DatTruocService,
   ThanhToanService,
   TonKhoService,
-  PhieuNhapService: require('./PhieuNhapService')
+  PhieuNhapService: require('./PhieuNhapService'),
+  AdminService: require('./AdminService'),
+  KhuyenMaiService: require('./KhuyenMaiService'),
+  DonDatHangNCCService: require('./DonDatHangNCCService'),
+  DoiTraService: require('./DoiTraService')
 };
+

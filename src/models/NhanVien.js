@@ -7,7 +7,7 @@ const nhanVienSchema = new mongoose.Schema({
   vaiTro: {
     type: String,
     required: true,
-    enum: ['Quản lý', 'Thủ kho', 'NV bán hàng', 'Thu ngân', 'Kế toán', 'Kỹ thuật'],
+    enum: ['Admin', 'Quản lý', 'Thủ kho', 'NV bán hàng', 'Thu ngân', 'Kế toán', 'Kỹ thuật'],
     default: 'NV bán hàng'
   },
   tenDangNhap: { type: String, required: true, unique: true, trim: true, lowercase: true },
