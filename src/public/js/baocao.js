@@ -47,14 +47,14 @@ async function loadAllReports() {
 
 async function loadTongHopTaiChinh() {
   const params = getFilterParams();
-  const res = await api.get('/bao-cao/tong-hop-tai-chinh', params);
+  const res = await api.get('/bao-cao/doanh-thu', params);
   
-  if (res.success) {
-    const { tongDoanhThu, tongChiPhi, loiNhuanGop, tongDonHang } = res.data;
-    document.getElementById('tongDoanhThu').textContent = tongDoanhThu.toLocaleString('vi-VN') + ' đ';
-    document.getElementById('tongChiPhi').textContent = tongChiPhi.toLocaleString('vi-VN') + ' đ';
-    document.getElementById('loiNhuanGop').textContent = loiNhuanGop.toLocaleString('vi-VN') + ' đ';
-    document.getElementById('tongDonHang').textContent = tongDonHang;
+  if (res.success && res.data && res.data.tongQuan) {
+    const { tongDoanhThu, tongChiPhi, loiNhuanGop, tongSoHoaDon } = res.data.tongQuan;
+    document.getElementById('tongDoanhThu').textContent = (tongDoanhThu || 0).toLocaleString('vi-VN') + ' đ';
+    document.getElementById('tongChiPhi').textContent = (tongChiPhi || 0).toLocaleString('vi-VN') + ' đ';
+    document.getElementById('loiNhuanGop').textContent = (loiNhuanGop || 0).toLocaleString('vi-VN') + ' đ';
+    document.getElementById('tongDonHang').textContent = tongSoHoaDon || 0;
   }
 }
 
@@ -63,9 +63,9 @@ async function loadDoanhThuChart() {
   params.nhom = document.getElementById('nhomDoanhThu').value;
   
   const res = await api.get('/bao-cao/doanh-thu', params);
-  if (!res.success) return;
+  if (!res.success || !res.data || !res.data.bieuDo) return;
   
-  const data = res.data;
+  const bieuDo = res.data.bieuDo;
   
   const ctx = document.getElementById('doanhThuChart').getContext('2d');
   
@@ -76,11 +76,11 @@ async function loadDoanhThuChart() {
   myChart = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: data.labels,
+      labels: bieuDo.labels,
       datasets: [
         {
           label: 'Doanh Thu',
-          data: data.seriesDoanhThu,
+          data: bieuDo.doanhThu,
           borderColor: '#4f46e5',
           backgroundColor: 'rgba(79, 70, 229, 0.1)',
           borderWidth: 2,
@@ -89,7 +89,7 @@ async function loadDoanhThuChart() {
         },
         {
           label: 'Lợi Nhuận',
-          data: data.seriesLoiNhuan,
+          data: bieuDo.loiNhuan,
           borderColor: '#10b981',
           backgroundColor: 'rgba(16, 185, 129, 0.1)',
           borderWidth: 2,
@@ -168,26 +168,26 @@ async function loadTonLauNgay() {
   const tbody = document.getElementById('tonLauNgayBody');
   const badge = document.getElementById('badgeTonLau');
   
-  if (!res.success || !res.data) {
+  if (!res.success || !res.data || !res.data.danhSach) {
     tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3 text-muted">Không tải được dữ liệu</td></tr>';
     badge.textContent = '0 máy';
     return;
   }
   
-  badge.textContent = `${res.data.length} máy`;
+  badge.textContent = `${res.data.danhSach.length} máy`;
   
-  if (res.data.length === 0) {
+  if (res.data.danhSach.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-success"><i class="bi bi-check-circle fs-4 d-block mb-1"></i> Kho không có máy tồn kho quá hạn</td></tr>';
     return;
   }
   
   let html = '';
-  res.data.forEach(item => {
+  res.data.danhSach.forEach(item => {
     html += `
       <tr>
         <td class="fw-bold">${item.imei}</td>
-        <td>${item.tenSanPham}</td>
-        <td>${item.tenKho}</td>
+        <td>${item.tenMay}</td>
+        <td>${item.hang || 'N/A'}</td>
         <td>${new Date(item.ngayNhap).toLocaleDateString('vi-VN')}</td>
         <td><span class="badge bg-danger rounded-pill px-2 py-1">${item.soNgayTon} ngày</span></td>
         <td class="text-end">${item.giaNhap.toLocaleString('vi-VN')} đ</td>
