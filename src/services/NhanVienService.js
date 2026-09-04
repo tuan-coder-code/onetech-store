@@ -71,17 +71,6 @@ class NhanVienService extends BaseService {
       tenDangNhap: tenDangNhap.trim(),
       matKhau
     });
-    if (existing) {
-      throw this.createError('Tên đăng nhập đã tồn tại trong hệ thống', 409);
-    }
-
-    const nv = await NhanVien.create({
-      hoTen: hoTen.trim(),
-      sdt: sdt ? sdt.trim() : '',
-      vaiTro,
-      tenDangNhap: tenDangNhap.trim(),
-      matKhau
-    });
 
     const nvObj = nv.toObject();
     delete nvObj.matKhau;
