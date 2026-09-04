@@ -3,7 +3,9 @@ const bcrypt = require('bcryptjs');
 
 const nhanVienSchema = new mongoose.Schema({
   hoTen: { type: String, required: true, trim: true },
-  sdt: { type: String, trim: true },
+  sdt: { type: String, required: true, trim: true },
+  email: { type: String, trim: true },
+  diaChi: { type: String, trim: true },
   vaiTro: {
     type: String,
     required: true,
@@ -12,7 +14,7 @@ const nhanVienSchema = new mongoose.Schema({
   },
   tenDangNhap: { type: String, required: true, unique: true, trim: true, lowercase: true },
   matKhau: { type: String, required: true },
-  trangThai: { type: String, enum: ['Hoạt động', 'Khóa'], default: 'Hoạt động' }
+  trangThai: { type: String, enum: ['Hoạt động', 'Khóa', 'Nghỉ việc'], default: 'Hoạt động' }
 }, {
   timestamps: true
 });

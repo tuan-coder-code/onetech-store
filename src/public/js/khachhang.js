@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function initKhachHangIndex() {
   const filterForm = document.getElementById('filterForm');
   const btnReset = document.getElementById('btnResetFilter');
+  const searchInput = document.getElementById('filterSearch');
+  const filterHangThanhVien = document.getElementById('filterHangThanhVien');
+  const filterTongChiTieu = document.getElementById('filterTongChiTieu');
 
   await loadKhachHangList();
 
@@ -24,19 +27,50 @@ async function initKhachHangIndex() {
       loadKhachHangList();
     });
   }
+  
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        loadKhachHangList();
+      }, 300);
+    });
+  }
+  
+  if (filterHangThanhVien) {
+    filterHangThanhVien.addEventListener('change', loadKhachHangList);
+  }
+  
+  if (filterTongChiTieu) {
+    filterTongChiTieu.addEventListener('change', loadKhachHangList);
+  }
 
   if (btnReset) {
     btnReset.addEventListener('click', () => {
-      document.getElementById('filterSearch').value = '';
+      if (searchInput) searchInput.value = '';
+      if (filterHangThanhVien) filterHangThanhVien.value = '';
+      if (filterTongChiTieu) filterTongChiTieu.value = '';
       loadKhachHangList();
     });
   }
 }
 
+// Debounce implementation for search
+let searchTimeout;
+
 async function loadKhachHangList() {
   const search = document.getElementById('filterSearch')?.value.trim() || '';
+  const hangThanhVien = document.getElementById('filterHangThanhVien')?.value || '';
+  const tongChiTieuRange = document.getElementById('filterTongChiTieu')?.value || '';
+  
+  let query = { search, hangThanhVien };
+  if (tongChiTieuRange) {
+    const parts = tongChiTieuRange.split('-');
+    if (parts[0]) query.tongChiTieuMin = parts[0];
+    if (parts[1]) query.tongChiTieuMax = parts[1];
+  }
 
-  const res = await api.get('/khach-hang', { search });
+  const res = await api.get('/khach-hang', query);
   if (!res.success) {
     showToast(res.message || 'Không thể tải danh sách khách hàng', 'danger');
     return;
@@ -50,13 +84,28 @@ async function loadKhachHangList() {
     const isSellerOrCashierOrManager = currentUser && ['Quản lý', 'NV bán hàng', 'Thu ngân'].includes(currentUser.vaiTro);
     const isManager = currentUser && currentUser.vaiTro === 'Quản lý';
 
-    tbody.innerHTML = khachHangs.map(kh => `
+    tbody.innerHTML = khachHangs.map(kh => {
+      const getBadgeColor = (hang) => {
+        if (hang === 'Kim Cương') return 'bg-dark';
+        if (hang === 'Vàng') return 'bg-warning text-dark';
+        if (hang === 'Bạc') return 'bg-secondary';
+        return 'bg-info text-dark';
+      };
+      
+      return `
       <tr>
-        <td class="fw-semibold">${escapeHtml(kh.hoTen)}</td>
-        <td><span class="font-monospace text-primary">${escapeHtml(kh.sdt || 'Chưa cập nhật')}</span></td>
-        <td>${escapeHtml(kh.diaChi || 'Chưa cập nhật')}</td>
-        <td>${formatDate(kh.createdAt)}</td>
-        <td class="text-end">
+        <td>
+          <div class="fw-semibold">${escapeHtml(kh.hoTen)}</div>
+          <div class="small text-muted">${escapeHtml(kh.email || '')}</div>
+        </td>
+        <td>
+          <div class="font-monospace text-primary">${escapeHtml(kh.sdt || 'Chưa cập nhật')}</div>
+          <div class="small text-muted" style="font-size: 0.75rem;"><i class="bi bi-geo-alt"></i> ${escapeHtml(kh.diaChi || 'Chưa cập nhật')}</div>
+        </td>
+        <td><span class="badge ${getBadgeColor(kh.hangThanhVien)}">${escapeHtml(kh.hangThanhVien || 'Đồng')}</span></td>
+        <td class="fw-semibold">${formatCurrency(kh.tongChiTieu || 0)}</td>
+        <td class="text-end">`;
+    }).join('');
           <div class="btn-group btn-group-sm">
             ${isSellerOrCashierOrManager ? `
               <a href="/khach-hang/form.html?id=${kh._id}" class="btn btn-outline-primary" title="Sửa">
@@ -99,10 +148,11 @@ async function initKhachHangForm() {
     document.getElementById('btnSubmitForm').innerHTML = '<i class="bi bi-check2-circle me-1"></i> Cập nhật Khách hàng';
 
     const res = await api.get(`/khach-hang/${editId}`);
-    if (res.success && res.data) {
-      const kh = res.data;
+    if (res.success && res.data && res.data.khachHang) {
+      const kh = res.data.khachHang;
       document.getElementById('inputHoTen').value = kh.hoTen || '';
       document.getElementById('inputSdt').value = kh.sdt || '';
+      if(document.getElementById('inputEmail')) document.getElementById('inputEmail').value = kh.email || '';
       document.getElementById('inputDiaChi').value = kh.diaChi || '';
     } else {
       showToast('Không tìm thấy thông tin khách hàng', 'danger');
@@ -117,6 +167,7 @@ async function initKhachHangForm() {
       const body = {
         hoTen: document.getElementById('inputHoTen').value.trim(),
         sdt: document.getElementById('inputSdt').value.trim(),
+        email: document.getElementById('inputEmail')?.value.trim() || '',
         diaChi: document.getElementById('inputDiaChi').value.trim()
       };
 

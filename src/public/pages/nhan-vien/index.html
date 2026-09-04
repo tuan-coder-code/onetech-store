@@ -39,7 +39,7 @@
       <!-- Filters Bar -->
       <div class="card-custom p-3 mb-4">
         <form id="filterForm" class="row g-2 align-items-center">
-          <div class="col-12 col-md-6">
+          <div class="col-12 col-md-4">
             <div class="input-group">
               <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
               <input type="text" id="filterSearch" class="form-control" placeholder="Tìm theo tên, username hoặc SĐT...">
@@ -56,7 +56,15 @@
               <option value="Kỹ thuật">Kỹ thuật</option>
             </select>
           </div>
-          <div class="col-12 col-md-3 d-flex gap-2">
+          <div class="col-12 col-sm-6 col-md-3">
+            <select id="filterTrangThai" class="form-select">
+              <option value="">-- Tất cả trạng thái --</option>
+              <option value="Hoạt động">Hoạt động</option>
+              <option value="Khóa">Khóa tài khoản</option>
+              <option value="Nghỉ việc">Nghỉ việc</option>
+            </select>
+          </div>
+          <div class="col-12 col-md-2 d-flex gap-2">
             <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel me-1"></i> Lọc</button>
             <button type="button" id="btnResetFilter" class="btn btn-outline-secondary"><i class="bi bi-arrow-clockwise"></i></button>
           </div>
@@ -72,7 +80,7 @@
                 <th>Họ và tên</th>
                 <th>Tên đăng nhập</th>
                 <th>Vai trò (Phân quyền)</th>
-                <th>Số điện thoại</th>
+                <th>Thông tin liên hệ</th>
                 <th>Trạng thái</th>
                 <th class="text-end">Hành động</th>
               </tr>

@@ -1,13 +1,22 @@
 const BaseService = require('./BaseService');
 const { NhanVien } = require('../models');
 
+function formatName(str) {
+  if (!str) return '';
+  return str.trim().replace(/\s+/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+}
+
+function validatePhone(phone) {
+  return phone && /^[0-9]{10}$/.test(phone.trim());
+}
+
 class NhanVienService extends BaseService {
   constructor() {
     super(NhanVien);
   }
 
   async getAllNhanViens(query = {}) {
-    const { search, vaiTro } = query;
+    const { search, vaiTro, trangThai } = query;
     const filter = {};
 
     if (search && search.trim()) {
@@ -19,6 +28,11 @@ class NhanVienService extends BaseService {
     }
     if (vaiTro) {
       filter.vaiTro = vaiTro;
+    }
+    if (trangThai) {
+      filter.trangThai = trangThai;
+    } else {
+      filter.trangThai = { $ne: 'Nghỉ việc' }; // Mặc định không lấy NV đã nghỉ việc
     }
 
     return await NhanVien.find(filter).select('-matKhau').sort({ createdAt: -1 });
@@ -33,13 +47,30 @@ class NhanVienService extends BaseService {
   }
 
   async createNhanVien(payload = {}) {
-    const { hoTen, sdt, vaiTro, tenDangNhap, matKhau } = payload;
+    const { hoTen, sdt, diaChi, email, vaiTro, tenDangNhap, matKhau } = payload;
 
     if (!hoTen || !vaiTro || !tenDangNhap || !matKhau) {
       throw this.createError('Vui lòng điền đầy đủ Họ tên, Vai trò, Tên đăng nhập và Mật khẩu', 400);
     }
+    
+    if (!validatePhone(sdt)) {
+      throw this.createError('Số điện thoại không hợp lệ (yêu cầu 10 chữ số)', 400);
+    }
 
     const existing = await NhanVien.findOne({ tenDangNhap: tenDangNhap.trim() });
+    if (existing) {
+      throw this.createError('Tên đăng nhập đã tồn tại trong hệ thống', 409);
+    }
+
+    const nv = await NhanVien.create({
+      hoTen: formatName(hoTen),
+      sdt: sdt.trim(),
+      diaChi: formatName(diaChi),
+      email: email ? email.trim() : '',
+      vaiTro,
+      tenDangNhap: tenDangNhap.trim(),
+      matKhau
+    });
     if (existing) {
       throw this.createError('Tên đăng nhập đã tồn tại trong hệ thống', 409);
     }
@@ -58,7 +89,7 @@ class NhanVienService extends BaseService {
   }
 
   async updateNhanVien(id, payload = {}, currentUserId = null) {
-    const { hoTen, sdt, vaiTro, tenDangNhap, matKhau } = payload;
+    const { hoTen, sdt, diaChi, email, vaiTro, tenDangNhap, matKhau, trangThai } = payload;
 
     const nv = await NhanVien.findById(id);
     if (!nv) {
@@ -73,9 +104,16 @@ class NhanVienService extends BaseService {
       nv.tenDangNhap = tenDangNhap.trim();
     }
 
-    if (hoTen) nv.hoTen = hoTen.trim();
+    if (sdt && !validatePhone(sdt)) {
+      throw this.createError('Số điện thoại không hợp lệ (yêu cầu 10 chữ số)', 400);
+    }
+
+    if (hoTen) nv.hoTen = formatName(hoTen);
     if (sdt !== undefined) nv.sdt = sdt.trim();
+    if (diaChi !== undefined) nv.diaChi = formatName(diaChi);
+    if (email !== undefined) nv.email = email.trim();
     if (vaiTro) nv.vaiTro = vaiTro;
+    if (trangThai) nv.trangThai = trangThai;
     if (matKhau && matKhau.trim()) {
       nv.matKhau = matKhau;
     }
@@ -91,7 +129,8 @@ class NhanVienService extends BaseService {
       throw this.createError('Bạn không thể tự xóa tài khoản của chính mình!', 400);
     }
 
-    const deleted = await NhanVien.findByIdAndDelete(id);
+    // Xoá mềm (Nghỉ việc)
+    const deleted = await NhanVien.findByIdAndUpdate(id, { trangThai: 'Nghỉ việc' }, { new: true });
     if (!deleted) {
       throw this.createError('Không tìm thấy nhân viên', 404);
     }

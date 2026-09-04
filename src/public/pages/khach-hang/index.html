@@ -39,13 +39,31 @@
       <!-- Filters Bar -->
       <div class="card-custom p-3 mb-4">
         <form id="filterForm" class="row g-2 align-items-center">
-          <div class="col-12 col-md-6">
+          <div class="col-12 col-md-4">
             <div class="input-group">
               <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
-              <input type="text" id="filterSearch" class="form-control" placeholder="Tìm theo tên hoặc số điện thoại...">
+              <input type="text" id="filterSearch" class="form-control" placeholder="Tìm theo tên hoặc SĐT...">
             </div>
           </div>
-          <div class="col-12 col-md-3 d-flex gap-2">
+          <div class="col-12 col-md-3">
+            <select id="filterHangThanhVien" class="form-select">
+              <option value="">-- Tất cả hạng thẻ --</option>
+              <option value="Đồng">Hạng Đồng</option>
+              <option value="Bạc">Hạng Bạc</option>
+              <option value="Vàng">Hạng Vàng</option>
+              <option value="Kim Cương">Hạng Kim Cương</option>
+            </select>
+          </div>
+          <div class="col-12 col-md-3">
+            <select id="filterTongChiTieu" class="form-select">
+              <option value="">-- Chi tiêu --</option>
+              <option value="0-5000000">Dưới 5 triệu</option>
+              <option value="5000000-20000000">5 triệu - 20 triệu</option>
+              <option value="20000000-50000000">20 triệu - 50 triệu</option>
+              <option value="50000000-">Trên 50 triệu</option>
+            </select>
+          </div>
+          <div class="col-12 col-md-2 d-flex gap-2">
             <button type="submit" class="btn btn-primary w-100"><i class="bi bi-funnel me-1"></i> Tìm kiếm</button>
             <button type="button" id="btnResetFilter" class="btn btn-outline-secondary"><i class="bi bi-arrow-clockwise"></i></button>
           </div>
@@ -59,9 +77,9 @@
             <thead>
               <tr>
                 <th>Họ và tên</th>
-                <th>Số điện thoại</th>
-                <th>Địa chỉ</th>
-                <th>Ngày tạo</th>
+                <th>Thông tin liên hệ</th>
+                <th>Hạng thẻ</th>
+                <th>Tổng chi tiêu</th>
                 <th class="text-end">Hành động</th>
               </tr>
             </thead>

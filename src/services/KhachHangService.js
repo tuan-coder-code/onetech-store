@@ -1,6 +1,15 @@
 const BaseService = require('./BaseService');
 const { KhachHang, HoaDon } = require('../models');
 
+function formatName(str) {
+  if (!str) return '';
+  return str.trim().replace(/\s+/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+}
+
+function validatePhone(phone) {
+  return phone && /^[0-9]{10}$/.test(phone.trim());
+}
+
 class KhachHangService extends BaseService {
   constructor() {
     super(KhachHang);
@@ -15,6 +24,19 @@ class KhachHangService extends BaseService {
         { hoTen: { $regex: search.trim(), $options: 'i' } },
         { sdt: { $regex: search.trim(), $options: 'i' } }
       ];
+    }
+    if (query.hangThanhVien) {
+      filter.hangThanhVien = query.hangThanhVien;
+    }
+    if (query.tongChiTieuMin || query.tongChiTieuMax) {
+      filter.tongChiTieu = {};
+      if (query.tongChiTieuMin) filter.tongChiTieu.$gte = Number(query.tongChiTieuMin);
+      if (query.tongChiTieuMax) filter.tongChiTieu.$lte = Number(query.tongChiTieuMax);
+    }
+    if (query.status !== undefined) {
+      filter.status = query.status === 'true' || query.status === true;
+    } else {
+      filter.status = true; // mặc định chỉ lấy khách hàng còn hoạt động
     }
 
     return await KhachHang.find(filter).sort({ createdAt: -1 });
@@ -37,24 +59,33 @@ class KhachHangService extends BaseService {
     if (!hoTen || !hoTen.trim()) {
       throw this.createError('Vui lòng nhập họ tên khách hàng', 400);
     }
+    if (!validatePhone(sdt)) {
+      throw this.createError('Số điện thoại không hợp lệ (yêu cầu 10 chữ số)', 400);
+    }
 
     return await KhachHang.create({
-      hoTen: hoTen.trim(),
-      sdt: sdt ? sdt.trim() : '',
-      diaChi: diaChi ? diaChi.trim() : '',
-      email: email ? email.trim() : ''
+      hoTen: formatName(hoTen),
+      sdt: sdt.trim(),
+      diaChi: formatName(diaChi),
+      email: email ? email.trim() : '',
+      status: true
     });
   }
 
   async updateKhachHang(id, payload = {}) {
-    const { hoTen, sdt, diaChi, email } = payload;
+    const { hoTen, sdt, diaChi, email, status } = payload;
+    if (sdt && !validatePhone(sdt)) {
+      throw this.createError('Số điện thoại không hợp lệ (yêu cầu 10 chữ số)', 400);
+    }
+    
     const updated = await KhachHang.findByIdAndUpdate(
       id,
       {
-        hoTen: hoTen ? hoTen.trim() : undefined,
+        hoTen: hoTen ? formatName(hoTen) : undefined,
         sdt: sdt !== undefined ? sdt.trim() : undefined,
-        diaChi: diaChi !== undefined ? diaChi.trim() : undefined,
-        email: email !== undefined ? email.trim() : undefined
+        diaChi: diaChi !== undefined ? formatName(diaChi) : undefined,
+        email: email !== undefined ? email.trim() : undefined,
+        status: status !== undefined ? status : undefined
       },
       { new: true, runValidators: true }
     );
@@ -67,12 +98,8 @@ class KhachHangService extends BaseService {
   }
 
   async deleteKhachHang(id) {
-    const hdCount = await HoaDon.countDocuments({ khachHang: id });
-    if (hdCount > 0) {
-      throw this.createError(`Không thể xóa khách hàng đã có ${hdCount} hóa đơn giao dịch!`, 400);
-    }
-
-    const deleted = await KhachHang.findByIdAndDelete(id);
+    // Soft delete instead of hard delete
+    const deleted = await KhachHang.findByIdAndUpdate(id, { status: false }, { new: true });
     if (!deleted) {
       throw this.createError('Không tìm thấy khách hàng', 404);
     }

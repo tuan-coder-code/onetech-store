@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function initNhanVienIndex() {
   const filterForm = document.getElementById('filterForm');
   const btnReset = document.getElementById('btnResetFilter');
+  const searchInput = document.getElementById('filterSearch');
+  const filterVaiTro = document.getElementById('filterVaiTro');
+  const filterTrangThai = document.getElementById('filterTrangThai');
 
   await loadNhanVienList();
 
@@ -24,21 +27,43 @@ async function initNhanVienIndex() {
       loadNhanVienList();
     });
   }
+  
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        loadNhanVienList();
+      }, 300);
+    });
+  }
+  
+  if (filterVaiTro) {
+    filterVaiTro.addEventListener('change', loadNhanVienList);
+  }
+  
+  if (filterTrangThai) {
+    filterTrangThai.addEventListener('change', loadNhanVienList);
+  }
 
   if (btnReset) {
     btnReset.addEventListener('click', () => {
-      document.getElementById('filterSearch').value = '';
-      document.getElementById('filterVaiTro').value = '';
+      if (searchInput) searchInput.value = '';
+      if (filterVaiTro) filterVaiTro.value = '';
+      if (filterTrangThai) filterTrangThai.value = '';
       loadNhanVienList();
     });
   }
 }
 
+// Debounce implementation for search
+let searchTimeout;
+
 async function loadNhanVienList() {
   const search = document.getElementById('filterSearch')?.value.trim() || '';
   const vaiTro = document.getElementById('filterVaiTro')?.value || '';
+  const trangThai = document.getElementById('filterTrangThai')?.value || '';
 
-  const res = await api.get('/nhan-vien', { search, vaiTro });
+  const res = await api.get('/nhan-vien', { search, vaiTro, trangThai });
   if (!res.success) {
     showToast(res.message || 'Không thể tải danh sách nhân viên', 'danger');
     return;
