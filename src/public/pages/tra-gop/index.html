@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản Lý Trả Góp - One Tech Store</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div class="app-wrapper">
+  <div id="appSidebar"></div>
+  <div class="app-main">
+    <div id="appNavbar"></div>
+    <main class="page-container">
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+          <h4 class="fw-bold mb-1">Quản Lý Trả Góp</h4>
+          <p class="text-muted small mb-0">Lập hợp đồng trả góp từ hóa đơn mua hàng và quản lý lịch thu tiền kỳ hạn.</p>
+        </div>
+        <div id="btnCreateContainer">
+          <button class="btn btn-primary shadow-sm" onclick="openTaoHopDongModal()" data-allow-roles="Kế toán,Thu ngân,NV bán hàng">
+            <i class="bi bi-plus-lg me-1"></i> Lập hợp đồng mới
+          </button>
+        </div>
+      </div>
+
+      <!-- Thống kê nhanh -->
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-md-3">
+          <div class="card card-custom p-3 border-start border-4 border-primary h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Tổng Hợp Đồng</div>
+            <h3 class="mt-2 mb-0 fw-bold" id="statTotalHD">0</h3>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <div class="card card-custom p-3 border-start border-4 border-warning h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Đang Trả Góp</div>
+            <h3 class="mt-2 mb-0 fw-bold" id="statActive">0</h3>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <div class="card card-custom p-3 border-start border-4 border-success h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Hoàn Tất</div>
+            <h3 class="mt-2 mb-0 fw-bold" id="statCompleted">0</h3>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <div class="card card-custom p-3 border-start border-4 border-danger h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Quá Hạn</div>
+            <h3 class="mt-2 mb-0 fw-bold" id="statOverdue">0</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bộ lọc và danh sách -->
+      <div class="card card-custom mb-4">
+        <div class="card-body">
+          <div class="row g-2 mb-3">
+            <div class="col-md-4">
+              <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" class="form-control border-start-0 ps-0" id="searchTraGop" placeholder="Tìm theo mã HĐ, SĐT, tên KH...">
+              </div>
+            </div>
+            <div class="col-md-3">
+              <select class="form-select" id="filterTrangThai" onchange="loadDanhSachTraGop()">
+                <option value="">Tất cả trạng thái</option>
+                <option value="Đã duyệt">Đã duyệt (Đang trả)</option>
+                <option value="Hoàn tất">Hoàn tất</option>
+                <option value="Hủy">Đã hủy</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="tableTraGop">
+              <thead class="table-light">
+                <tr>
+                  <th>Mã HĐ</th>
+                  <th>Khách hàng</th>
+                  <th>Số tiền trả góp</th>
+                  <th>Kỳ hạn</th>
+                  <th>Tiến độ</th>
+                  <th>Trạng thái</th>
+                  <th class="text-end">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="7" class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-3" id="paginationContainer"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal Lập Hợp Đồng -->
+<div class="modal fade" id="modalTaoHopDong" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header border-bottom-0 bg-primary text-white">
+        <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-text me-2"></i>Lập Hợp Đồng Trả Góp</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form id="formTaoHopDong">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Hóa Đơn Cần Trả Góp <span class="text-danger">*</span></label>
+            <select class="form-select" id="hoadonSelect" required></select>
+            <div class="form-text text-primary" id="hdInfo"></div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Số Tiền Trả Trước <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <input type="number" class="form-control" id="soTienTraTruoc" min="0" required>
+              <span class="input-group-text">VNĐ</span>
+            </div>
+            <div class="form-text text-danger" id="errTraTruoc"></div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Số Kỳ Hạn (Tháng) <span class="text-danger">*</span></label>
+            <select class="form-select" id="soKy" required>
+              <option value="3">3 tháng</option>
+              <option value="6">6 tháng</option>
+              <option value="9">9 tháng</option>
+              <option value="12">12 tháng</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Ghi chú (Tùy chọn)</label>
+            <textarea class="form-control" id="ghiChu" rows="2" placeholder="Thông tin tổ chức tín dụng, ..."></textarea>
+          </div>
+          <div class="alert alert-info py-2 mb-0">
+            <strong>Dự tính: </strong><br/>
+            Số tiền trả góp: <span class="fw-bold text-danger" id="calcTraGop">0 đ</span><br/>
+            Mỗi tháng trả: <span class="fw-bold text-success" id="calcMoiThang">0 đ</span>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-top-0 bg-light">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" class="btn btn-primary fw-medium" onclick="submitTaoHopDong()">Lập Hợp Đồng</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Chi Tiết Hợp Đồng & Lịch Thu -->
+<div class="modal fade" id="modalChiTiet" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header border-bottom-0 bg-light">
+        <h5 class="modal-title fw-bold">Chi Tiết Trả Góp & Lịch Thu Tiền</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4" id="chiTietBody">
+        <div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Thu Tiền Kỳ Hạn -->
+<div class="modal fade" id="modalThuTien" tabindex="-1" style="z-index: 1060;">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h6 class="modal-title">Thu Tiền Kỳ Kế Tiếp</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="small text-muted mb-2">Đang thu kỳ: <strong id="thuKySo" class="text-dark"></strong></p>
+        <p class="small text-muted mb-3">Số tiền cần thu: <strong id="thuSoTien" class="text-danger fs-6"></strong></p>
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">Hình Thức Thanh Toán</label>
+          <select class="form-select form-select-sm" id="thuHinhThuc">
+            <option value="Tiền mặt">Tiền mặt</option>
+            <option value="Chuyển khoản">Chuyển khoản</option>
+            <option value="Quẹt thẻ">Quẹt thẻ</option>
+            <option value="Ví điện tử">Ví điện tử</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">Ghi Chú</label>
+          <input type="text" class="form-control form-control-sm" id="thuGhiChu" placeholder="Mã GD nếu CK...">
+        </div>
+        <button class="btn btn-success w-100" onclick="submitThuTien()"><i class="bi bi-check2-circle"></i> Xác nhận Thu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/layout.js"></script>
+<script src="/js/tragop.js"></script>
+</body>
+</html>

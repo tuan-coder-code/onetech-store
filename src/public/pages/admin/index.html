@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - One Tech Store</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div class="app-wrapper">
+  <div id="appSidebar"></div>
+  <div class="app-main">
+    <div id="appNavbar"></div>
+    <main class="page-container">
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+          <h4 class="fw-bold mb-1">Hệ Thống Admin</h4>
+          <p class="text-muted small mb-0">Giám sát tổng quan hệ thống, quản lý tài khoản và sao lưu dữ liệu.</p>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-secondary btn-sm" onclick="restoreDatabase()">
+            <i class="bi bi-cloud-arrow-down me-1"></i> Phục hồi
+          </button>
+          <button class="btn btn-success btn-sm shadow-sm" onclick="backupDatabase()">
+            <i class="bi bi-cloud-arrow-up me-1"></i> Backup CSDL
+          </button>
+        </div>
+      </div>
+
+      <!-- Thống kê chung -->
+      <div class="row g-3 mb-4" id="overviewStats">
+        <div class="col-sm-6 col-md-3">
+          <div class="card card-custom p-3 border-start border-4 border-primary h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Nhân Viên</div>
+            <h3 class="mt-2 mb-0 fw-bold" id="statNhanVien">0</h3>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <div class="card card-custom p-3 border-start border-4 border-info h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Khách Hàng</div>
+            <h3 class="mt-2 mb-0 fw-bold" id="statKhachHang">0</h3>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <div class="card card-custom p-3 border-start border-4 border-success h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Sản Phẩm</div>
+            <h3 class="mt-2 mb-0 fw-bold" id="statSanPham">0</h3>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <div class="card card-custom p-3 border-start border-4 border-warning h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Hóa Đơn</div>
+            <h3 class="mt-2 mb-0 fw-bold" id="statHoaDon">0</h3>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <!-- Quản lý tài khoản -->
+        <div class="col-lg-8">
+          <div class="card card-custom h-100">
+            <div class="card-header bg-white border-bottom-0 pb-0 pt-3">
+              <h6 class="fw-bold mb-0">Quản Lý Tài Khoản Nhân Viên</h6>
+            </div>
+            <div class="card-body">
+              <div class="row g-2 mb-3">
+                <div class="col-md-5">
+                  <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" class="form-control border-start-0 ps-0" id="searchNhanVien" placeholder="Tìm tên, SĐT, username...">
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <select class="form-select" id="filterVaiTro" onchange="loadAccounts()">
+                    <option value="">Tất cả vai trò</option>
+                    <option value="Quản lý">Quản lý</option>
+                    <option value="Thủ kho">Thủ kho</option>
+                    <option value="NV bán hàng">NV bán hàng</option>
+                    <option value="Thu ngân">Thu ngân</option>
+                    <option value="Kế toán">Kế toán</option>
+                    <option value="Kỹ thuật">Kỹ thuật</option>
+                  </select>
+                </div>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="tableAccounts">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Họ Tên</th>
+                      <th>Tài khoản</th>
+                      <th>Vai trò</th>
+                      <th>Trạng thái</th>
+                      <th class="text-end">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="mt-3" id="paginationContainer"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Phân bố vai trò -->
+        <div class="col-lg-4">
+          <div class="card card-custom h-100">
+            <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+              <h6 class="fw-bold mb-0">Phân Bố Nhân Sự</h6>
+            </div>
+            <div class="card-body mt-3 text-center">
+               <canvas id="roleChart" style="max-height: 250px;"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/layout.js"></script>
+<script src="/js/admin.js"></script>
+</body>
+</html>

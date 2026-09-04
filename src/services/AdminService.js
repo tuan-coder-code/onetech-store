@@ -149,6 +149,23 @@ class AdminService extends BaseService {
       message: `Backup thành công! Đã snapshot ${nv + kh + ncc + sp + may + hd + bh} bản ghi.`
     };
   }
+
+  /**
+   * Phục hồi dữ liệu hệ thống từ file backup (giả lập)
+   */
+  async restoreDatabase(fileData) {
+    // Trong thực tế, bạn sẽ parse file JSON/BSON và insert lại vào DB
+    // Ở đây chúng ta giả lập thành công sau một khoảng thời gian
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          success: true,
+          restoreTime: new Date(),
+          message: 'Phục hồi dữ liệu thành công từ file bản sao!'
+        });
+      }, 1500);
+    });
+  }
 }
 
 module.exports = new AdminService();

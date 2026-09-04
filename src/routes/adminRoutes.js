@@ -22,4 +22,7 @@ router.put('/accounts/:id/reset-password', adminController.resetPassword);
 // POST /api/admin/backup - Backup dữ liệu hệ thống
 router.post('/backup', adminController.backup);
 
+// POST /api/admin/restore - Phục hồi dữ liệu hệ thống
+router.post('/restore', adminController.restore);
+
 module.exports = router;

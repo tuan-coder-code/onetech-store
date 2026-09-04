@@ -32,6 +32,14 @@ const MENU_SCHEMA = [
         shortLabel: 'Dashboard',
         icon: 'bi-grid-1x2',
         roles: ['Quản lý', 'Thủ kho', 'NV bán hàng', 'Thu ngân', 'Kế toán', 'Kỹ thuật']
+      },
+      {
+        path: '/bao-cao/index.html',
+        dataPath: '/bao-cao/',
+        label: 'Báo cáo thống kê',
+        shortLabel: 'Báo cáo',
+        icon: 'bi-bar-chart-line',
+        roles: ['Quản lý', 'Kế toán', 'Thu ngân']
       }
     ]
   },
@@ -61,6 +69,14 @@ const MENU_SCHEMA = [
         shortLabel: 'Đổi trả máy',
         icon: 'bi-arrow-left-right',
         roles: ['Quản lý', 'NV bán hàng', 'Thu ngân', 'Kế toán', 'Thủ kho', 'Kỹ thuật']
+      },
+      {
+        path: '/tra-gop/index.html',
+        dataPath: '/tra-gop/',
+        label: 'Quản lý Trả góp',
+        shortLabel: 'Trả góp',
+        icon: 'bi-file-earmark-text',
+        roles: ['Quản lý', 'NV bán hàng', 'Thu ngân', 'Kế toán']
       }
     ]
   },
@@ -108,6 +124,14 @@ const MENU_SCHEMA = [
         shortLabel: 'Nhập kho',
         icon: 'bi-box-arrow-in-down',
         roles: ['Quản lý', 'Thủ kho', 'Kế toán']
+      },
+      {
+        path: '/don-dat-hang-ncc/index.html',
+        dataPath: '/don-dat-hang-ncc/',
+        label: 'Đặt hàng NCC',
+        shortLabel: 'Đặt hàng NCC',
+        icon: 'bi-cart-plus',
+        roles: ['Quản lý', 'Thủ kho']
       },
       {
         path: '/san-pham/index.html',
@@ -182,6 +206,14 @@ const MENU_SCHEMA = [
         shortLabel: 'Nhân viên',
         icon: 'bi-shield-lock',
         roles: ['Quản lý']
+      },
+      {
+        path: '/admin/index.html',
+        dataPath: '/admin/',
+        label: 'Admin Dashboard',
+        shortLabel: 'Admin',
+        icon: 'bi-gear',
+        roles: ['Quản lý', 'Admin']
       }
     ]
   }

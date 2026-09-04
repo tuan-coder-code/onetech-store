@@ -12,6 +12,7 @@ class AdminController extends BaseController {
     this.toggleStatus = this.toggleStatus.bind(this);
     this.resetPassword = this.resetPassword.bind(this);
     this.backup = this.backup.bind(this);
+    this.restore = this.restore.bind(this);
   }
 
   // GET /api/admin/overview
@@ -63,6 +64,16 @@ class AdminController extends BaseController {
       return this.sendSuccess(res, result, result.message);
     } catch (error) {
       return this.handleError(res, error, 'Lỗi khi backup dữ liệu');
+    }
+  }
+
+  // POST /api/admin/restore
+  async restore(req, res) {
+    try {
+      const result = await AdminService.restoreDatabase(req.body);
+      return this.sendSuccess(res, result, result.message);
+    } catch (error) {
+      return this.handleError(res, error, 'Lỗi khi phục hồi dữ liệu');
     }
   }
 }
