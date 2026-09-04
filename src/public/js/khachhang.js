@@ -104,8 +104,7 @@ async function loadKhachHangList() {
         </td>
         <td><span class="badge ${getBadgeColor(kh.hangThanhVien)}">${escapeHtml(kh.hangThanhVien || 'Đồng')}</span></td>
         <td class="fw-semibold">${formatCurrency(kh.tongChiTieu || 0)}</td>
-        <td class="text-end">`;
-    }).join('');
+        <td class="text-end">
           <div class="btn-group btn-group-sm">
             ${isSellerOrCashierOrManager ? `
               <a href="/khach-hang/form.html?id=${kh._id}" class="btn btn-outline-primary" title="Sửa">
@@ -120,7 +119,8 @@ async function loadKhachHangList() {
           </div>
         </td>
       </tr>
-    `).join('');
+      `;
+    }).join('');
   } else {
     tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Không tìm thấy khách hàng nào</td></tr>';
   }
