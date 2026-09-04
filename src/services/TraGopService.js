@@ -68,12 +68,12 @@ class TraGopService extends BaseService {
    * Lấy danh sách hợp đồng trả góp
    */
   async layDanhSachHopDong(query = {}) {
-    const { trangThaiDuyet } = query;
+    const { trangThaiDuyet, search } = query;
     const filter = {};
     if (trangThaiDuyet) filter.trangThaiDuyet = trangThaiDuyet;
 
     const { page, limit, skip } = this.getPaginationOptions(query);
-    const [items, total] = await Promise.all([
+    const [items, total, thongKeRaw] = await Promise.all([
       HopDongTraGop.find(filter)
         .populate({
           path: 'hoaDon',
@@ -84,10 +84,28 @@ class TraGopService extends BaseService {
         .skip(skip)
         .limit(limit)
         .lean(),
-      HopDongTraGop.countDocuments(filter)
+      HopDongTraGop.countDocuments(filter),
+      HopDongTraGop.aggregate([
+        { $group: {
+          _id: '$trangThaiDuyet',
+          count: { $sum: 1 }
+        }}
+      ])
     ]);
 
-    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+    // Tổng hợp thống kê
+    const thongKe = { tongHopDong: total, dangTraGop: 0, hoanTat: 0, huy: 0 };
+    thongKeRaw.forEach(g => {
+      if (g._id === 'Da duyet') thongKe.dangTraGop += g.count;
+      else if (g._id === 'Hoan tat') thongKe.hoanTat += g.count;
+      else if (g._id === 'Huy') thongKe.huy += g.count;
+    });
+
+    return {
+      items,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      thongKe
+    };
   }
 
   /**
@@ -118,15 +136,15 @@ class TraGopService extends BaseService {
       }
 
       const daThu = i <= hopDong.soKyDaThu;
-      let trangThai = 'Chua thu';
+      let trangThai = 'Chưa thu';
       if (daThu) {
-        trangThai = 'Da thu';
+        trangThai = 'Đã thu';
       } else if (ngayDenHan < new Date()) {
-        trangThai = 'Qua han';
+        trangThai = 'Quá hạn';
       }
 
       lichThu.push({
-        kyThu: i,
+        ky: i,
         ngayDenHan,
         soTien: soTienKy,
         daThu,

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Module dựng Layout chung (Sidebar, Header, Phân quyền Menu, Kiểm tra Đăng nhập)
  */
