@@ -1,19 +1,27 @@
 let myChart = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Mặc định lọc từ đầu tháng đến hiện tại
+  // Mặc định lọc tháng hiện tại
   const today = new Date();
-  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const year = today.getFullYear();
   
-  document.getElementById('filterTuNgay').value = firstDay.toISOString().split('T')[0];
-  document.getElementById('filterDenNgay').value = today.toISOString().split('T')[0];
+  document.getElementById('filterThang').value = `${year}-${month}`;
   
   loadAllReports();
 });
 
 function getFilterParams() {
-  const tuNgay = document.getElementById('filterTuNgay').value;
-  const denNgay = document.getElementById('filterDenNgay').value;
+  const thangStr = document.getElementById('filterThang').value; // "YYYY-MM"
+  if (!thangStr) return {};
+  
+  const [year, month] = thangStr.split('-');
+  
+  const tuNgay = `${year}-${month}-01`;
+  
+  const denNgayDate = new Date(year, month, 0);
+  const denNgay = `${year}-${month}-${String(denNgayDate.getDate()).padStart(2, '0')}`;
+  
   return { tuNgay, denNgay };
 }
 
