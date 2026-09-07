@@ -277,13 +277,46 @@ async function switchChartGroup(group) {
 }
 
 /**
+ * Lọc biểu đồ doanh thu theo ngày
+ */
+async function filterRevenueChart() {
+  const tuNgay = document.getElementById('inputFilterTuNgay')?.value;
+  const denNgay = document.getElementById('inputFilterDenNgay')?.value;
+  if (!tuNgay && !denNgay) {
+    if (typeof api !== 'undefined' && api.showToast) {
+      api.showToast('Vui lòng chọn Từ ngày hoặc Đến ngày để lọc', 'warning');
+    } else {
+      alert('Vui lòng chọn Từ ngày hoặc Đến ngày để lọc');
+    }
+    return;
+  }
+  
+  if (tuNgay && denNgay && new Date(tuNgay) > new Date(denNgay)) {
+    if (typeof api !== 'undefined' && api.showToast) {
+      api.showToast('Từ ngày không được lớn hơn Đến ngày', 'warning');
+    } else {
+      alert('Từ ngày không được lớn hơn Đến ngày');
+    }
+    return;
+  }
+  
+  await updateRevenueChart(currentChartGroup);
+}
+
+/**
  * Vẽ / Cập nhật Biểu đồ Chart.js
  */
 async function updateRevenueChart(group = 'ngay') {
   const canvas = document.getElementById('canvasRevenueChart');
   if (!canvas || typeof Chart === 'undefined') return;
 
-  const res = await api.get(`/bao-cao/doanh-thu?nhom=${group}`);
+  const tuNgay = document.getElementById('inputFilterTuNgay')?.value || '';
+  const denNgay = document.getElementById('inputFilterDenNgay')?.value || '';
+  let url = `/bao-cao/doanh-thu?nhom=${group}`;
+  if (tuNgay) url += `&tuNgay=${tuNgay}`;
+  if (denNgay) url += `&denNgay=${denNgay}`;
+
+  const res = await api.get(url);
   if (!res || !res.success || !res.data) return;
 
   const { tongQuan = {}, bieuDo = {} } = res.data;

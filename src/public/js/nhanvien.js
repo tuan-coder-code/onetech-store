@@ -157,6 +157,9 @@ async function initNhanVienForm() {
       const nv = res.data;
       document.getElementById('inputHoTen').value = nv.hoTen || '';
       document.getElementById('inputSdt').value = nv.sdt || '';
+      if (document.getElementById('inputCccd')) document.getElementById('inputCccd').value = nv.cccd || '';
+      if (document.getElementById('inputEmail')) document.getElementById('inputEmail').value = nv.email || '';
+      if (document.getElementById('inputDiaChi')) document.getElementById('inputDiaChi').value = nv.diaChi || '';
       document.getElementById('inputTenDangNhap').value = nv.tenDangNhap || '';
       document.getElementById('selectVaiTro').value = nv.vaiTro || 'NV bán hàng';
       document.getElementById('selectTrangThai').value = nv.trangThai || 'Hoạt động';
@@ -177,6 +180,9 @@ async function initNhanVienForm() {
 
       const hoTen = document.getElementById('inputHoTen').value.trim();
       const sdt = document.getElementById('inputSdt').value.trim();
+      const cccd = document.getElementById('inputCccd')?.value.trim() || '';
+      const email = document.getElementById('inputEmail')?.value.trim() || '';
+      const diaChi = document.getElementById('inputDiaChi')?.value.trim() || '';
       const tenDangNhap = document.getElementById('inputTenDangNhap').value.trim();
       const vaiTro = document.getElementById('selectVaiTro').value;
       const matKhau = document.getElementById('inputMatKhau').value;
@@ -196,8 +202,8 @@ async function initNhanVienForm() {
         res = await api.put(`/nhan-vien/${editId}`, {
           hoTen,
           sdt,
-          email,
           cccd,
+          email,
           diaChi,
           vaiTro,
           matKhau,
@@ -207,8 +213,8 @@ async function initNhanVienForm() {
         res = await api.post('/nhan-vien', {
           hoTen,
           sdt,
-          email,
           cccd,
+          email,
           diaChi,
           tenDangNhap,
           vaiTro,
