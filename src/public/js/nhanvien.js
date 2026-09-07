@@ -188,9 +188,6 @@ async function initNhanVienForm() {
       const matKhau = document.getElementById('inputMatKhau').value;
       const trangThai = document.getElementById('selectTrangThai')?.value;
       
-      const email = document.getElementById('inputEmail') ? document.getElementById('inputEmail').value.trim() : '';
-      const cccd = document.getElementById('inputCccd') ? document.getElementById('inputCccd').value.trim() : '';
-      const diaChi = document.getElementById('inputDiaChi') ? document.getElementById('inputDiaChi').value.trim() : '';
 
       if (!hoTen || !vaiTro || (!isEdit && (!tenDangNhap || !matKhau))) {
         showToast('Vui lòng điền đầy đủ các thông tin bắt buộc', 'danger');
