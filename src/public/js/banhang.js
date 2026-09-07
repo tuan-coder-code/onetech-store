@@ -18,6 +18,35 @@ let allKhachHangs = [];
 let preOrderModalInstance = null;
 
 /**
+ * Chuyển đổi hiển thị giữa Khách mới và Thành viên
+ */
+window.toggleCustomerType = function() {
+  const type = document.querySelector('input[name="customerType"]:checked')?.value;
+  const guestInputs = document.getElementById('guestCustomerInputs');
+  const memberSelect = document.getElementById('memberCustomerSelect');
+  
+  if (type === 'guest') {
+    guestInputs.classList.remove('d-none');
+    memberSelect.classList.add('d-none');
+    
+    // Add required
+    document.getElementById('inputGuestName').setAttribute('required', 'required');
+    document.getElementById('inputGuestPhone').setAttribute('required', 'required');
+    // Remove required from select
+    document.getElementById('selectKhachHang').removeAttribute('required');
+  } else {
+    guestInputs.classList.add('d-none');
+    memberSelect.classList.remove('d-none');
+    
+    // Remove required
+    document.getElementById('inputGuestName').removeAttribute('required');
+    document.getElementById('inputGuestPhone').removeAttribute('required');
+    // Add required to select
+    document.getElementById('selectKhachHang').setAttribute('required', 'required');
+  }
+};
+
+/**
  * Hiệu ứng âm thanh POS khi quét mã vạch Barcode IMEI
  */
 function playBeep(type = 'success') {
@@ -719,7 +748,27 @@ async function handleCreateOrder() {
     return;
   }
 
-  const khachHang = document.getElementById('selectKhachHang')?.value || null;
+  let khachHang = null;
+  let guestName = '';
+  let guestPhone = '';
+  let guestCccd = '';
+
+  const customerType = document.querySelector('input[name="customerType"]:checked')?.value;
+  if (customerType === 'member') {
+    khachHang = document.getElementById('selectKhachHang')?.value || null;
+    if (!khachHang) {
+      showToast('Vui lòng chọn Thành viên', 'warning');
+      return;
+    }
+  } else {
+    guestName = document.getElementById('inputGuestName')?.value.trim();
+    guestPhone = document.getElementById('inputGuestPhone')?.value.trim();
+    guestCccd = document.getElementById('inputGuestCccd')?.value.trim();
+    if (!guestName || !guestPhone) {
+      showToast('Vui lòng nhập Tên và Số điện thoại khách hàng', 'warning');
+      return;
+    }
+  }
   const hinhThucThanhToan = document.getElementById('selectPaymentMethod')?.value || 'Da thanh toan';
   const ghiChu = document.getElementById('inputGhiChu')?.value || '';
   const inputDiscount = document.getElementById('inputSoTienGiam');
@@ -727,6 +776,9 @@ async function handleCreateOrder() {
 
   const payload = {
     khachHang,
+    guestName,
+    guestPhone,
+    guestCccd,
     danhSachIMEI: cart.imeis.map(m => m.imei),
     danhSachPhuKien: cart.phuKiens.map(pk => ({
       phuKien: pk._id,

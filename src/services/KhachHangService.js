@@ -55,7 +55,7 @@ class KhachHangService extends BaseService {
   }
 
   async createKhachHang(payload = {}) {
-    const { hoTen, sdt, diaChi, email } = payload;
+    const { hoTen, sdt, cccd, diaChi, email } = payload;
     if (!hoTen || !hoTen.trim()) {
       throw this.createError('Vui lòng nhập họ tên khách hàng', 400);
     }
@@ -66,6 +66,7 @@ class KhachHangService extends BaseService {
     return await KhachHang.create({
       hoTen: formatName(hoTen),
       sdt: sdt.trim(),
+      cccd: cccd ? cccd.trim() : undefined,
       diaChi: formatName(diaChi),
       email: email ? email.trim() : '',
       status: true
@@ -73,7 +74,7 @@ class KhachHangService extends BaseService {
   }
 
   async updateKhachHang(id, payload = {}) {
-    const { hoTen, sdt, diaChi, email, status } = payload;
+    const { hoTen, sdt, cccd, diaChi, email, status } = payload;
     if (sdt && !validatePhone(sdt)) {
       throw this.createError('Số điện thoại không hợp lệ (yêu cầu 10 chữ số)', 400);
     }
@@ -83,6 +84,7 @@ class KhachHangService extends BaseService {
       {
         hoTen: hoTen ? formatName(hoTen) : undefined,
         sdt: sdt !== undefined ? sdt.trim() : undefined,
+        cccd: cccd !== undefined ? cccd.trim() : undefined,
         diaChi: diaChi !== undefined ? formatName(diaChi) : undefined,
         email: email !== undefined ? email.trim() : undefined,
         status: status !== undefined ? status : undefined

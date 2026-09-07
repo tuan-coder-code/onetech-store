@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const khachHangSchema = new mongoose.Schema({
   hoTen: { type: String, required: true, trim: true },
   sdt: { type: String, required: true, trim: true },
+  cccd: { type: String, trim: true },
   diaChi: { type: String, trim: true },
   email: { type: String, trim: true },
   tongChiTieu: { type: Number, default: 0, min: 0 },

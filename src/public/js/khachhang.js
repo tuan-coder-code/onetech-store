@@ -152,6 +152,7 @@ async function initKhachHangForm() {
       const kh = res.data.khachHang;
       document.getElementById('inputHoTen').value = kh.hoTen || '';
       document.getElementById('inputSdt').value = kh.sdt || '';
+      if(document.getElementById('inputCccd')) document.getElementById('inputCccd').value = kh.cccd || '';
       if(document.getElementById('inputEmail')) document.getElementById('inputEmail').value = kh.email || '';
       document.getElementById('inputDiaChi').value = kh.diaChi || '';
     } else {
@@ -167,6 +168,7 @@ async function initKhachHangForm() {
       const body = {
         hoTen: document.getElementById('inputHoTen').value.trim(),
         sdt: document.getElementById('inputSdt').value.trim(),
+        cccd: document.getElementById('inputCccd')?.value.trim() || '',
         email: document.getElementById('inputEmail')?.value.trim() || '',
         diaChi: document.getElementById('inputDiaChi').value.trim()
       };

@@ -51,7 +51,7 @@ class NhanVienService extends BaseService {
   }
 
   async createNhanVien(payload = {}) {
-    const { hoTen, sdt, diaChi, email, vaiTro, tenDangNhap, matKhau } = payload;
+    const { hoTen, sdt, cccd, diaChi, email, vaiTro, tenDangNhap, matKhau } = payload;
 
     if (!hoTen || !vaiTro || !tenDangNhap || !matKhau) {
       throw this.createError('Vui lòng điền đầy đủ Họ tên, Vai trò, Tên đăng nhập và Mật khẩu', 400);
@@ -69,6 +69,7 @@ class NhanVienService extends BaseService {
     const nv = await NhanVien.create({
       hoTen: formatName(hoTen),
       sdt: sdt.trim(),
+      cccd: cccd ? cccd.trim() : undefined,
       diaChi: formatName(diaChi),
       email: email ? email.trim() : '',
       vaiTro,
@@ -85,7 +86,7 @@ class NhanVienService extends BaseService {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw this.createError('ID nhân viên không hợp lệ', 400);
     }
-    const { hoTen, sdt, diaChi, email, vaiTro, tenDangNhap, matKhau, trangThai } = payload;
+    const { hoTen, sdt, cccd, diaChi, email, vaiTro, tenDangNhap, matKhau, trangThai } = payload;
 
     const nv = await NhanVien.findById(id);
     if (!nv) {
@@ -106,6 +107,7 @@ class NhanVienService extends BaseService {
 
     if (hoTen) nv.hoTen = formatName(hoTen);
     if (sdt !== undefined) nv.sdt = sdt.trim();
+    if (cccd !== undefined) nv.cccd = cccd.trim();
     if (diaChi !== undefined) nv.diaChi = formatName(diaChi);
     if (email !== undefined) nv.email = email.trim();
     if (vaiTro) nv.vaiTro = vaiTro;
