@@ -5,6 +5,15 @@ Dự án hệ thống quản lý bán hàng cho chuỗi cửa hàng điện tho�
 
 ---
 
+## 📜 QUY CHUẨN LẬP TRÌNH & ĐÓNG GÓP (BẮT BUỘC ĐỌC)
+
+Để tránh xung đột mã nguồn (Merge Conflicts) và đảm bảo chất lượng hệ thống, **tất cả thành viên trong nhóm và AI Assistant bắt buộc phải tuân thủ**:
+* 🏛️ **[Bộ Quy Tắc Kiến Trúc Toàn Diện (AGENTS.md)](./AGENTS.md):** 9 quy tắc bắt buộc về Layered MVC OOP, RBAC 6 vai trò, Mongoose Transaction, Concurrency Lock, State Machine và chuẩn phản hồi API.
+* 🚀 **[Hướng Dẫn Đóng Góp & Quy Trình Tạo PR (CONTRIBUTING.md)](./CONTRIBUTING.md):** Checklist 4 bước trước khi tạo PR, hướng dẫn chạy test tự động 100% PASS và phân công module.
+* 📋 **[Bản Walkthrough Kiến Trúc Kỹ Thuật (PROJECT_WALKTHROUGH.md)](./PROJECT_WALKTHROUGH.md):** Chi tiết CSDL 26 models, 20 bộ test suites (796 assertions) và danh sách endpoints.
+
+---
+
 ## 1. Tech Stack & Kiến trúc Hệ thống (Layered MVC + OOP Service)
 
 - **Backend:** Node.js, Express.js — **RESTful API thuần (trả JSON chuẩn hóa)**
