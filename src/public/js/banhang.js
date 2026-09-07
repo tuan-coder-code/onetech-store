@@ -140,6 +140,24 @@ function handleScanOrEnterImei(rawText) {
   }
 }
 
+/**
+ * Mở Camera quét mã vạch IMEI / QR Code trực tiếp qua camera điện thoại / webcam
+ */
+function openImeiCameraScanner() {
+  if (typeof openCameraScanner === 'function') {
+    openCameraScanner({
+      title: 'Quét Mã Vạch IMEI / Hộp Máy',
+      onScan: (code) => {
+        switchToPosTab();
+        handleScanOrEnterImei(code);
+      }
+    });
+  } else {
+    alert('Thư viện Camera Scanner chưa sẵn sàng');
+  }
+}
+window.openImeiCameraScanner = openImeiCameraScanner;
+
 function initGlobalBarcodeListener() {
   document.addEventListener('keydown', (e) => {
     // Bỏ qua các phím chức năng hoặc tổ hợp phím

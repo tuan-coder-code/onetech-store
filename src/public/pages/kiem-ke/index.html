@@ -125,18 +125,22 @@
               <input type="text" class="form-control" id="inputGhiChu" placeholder="Ví dụ: Kiểm kê định kỳ cuối tháng, kiểm kê đột xuất...">
             </div>
 
-            <div class="col-12">
-              <div class="d-flex justify-content-between align-items-center mb-1">
+              <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-2">
                 <label class="form-label fw-semibold mb-0" for="textareaImeiThucTe">
                   Danh sách mã IMEI quét được thực tế <span class="text-danger">*</span>
                 </label>
-                <span class="badge bg-secondary" id="badgeCountScanned">Đã nhập: 0 IMEI</span>
+                <div class="d-flex align-items-center gap-2">
+                  <button type="button" class="btn btn-outline-primary btn-sm py-0 px-2" onclick="openKiemKeCameraScanner()" title="Bật camera điện thoại hoặc webcam để quét mã máy thực tế trên kệ">
+                    <i class="bi bi-camera-fill me-1"></i> Quét Camera
+                  </button>
+                  <span class="badge bg-secondary" id="badgeCountScanned">Đã nhập: 0 IMEI</span>
+                </div>
               </div>
               <textarea class="form-control font-monospace" id="textareaImeiThucTe" rows="5" 
                 placeholder="Nhập hoặc quét từng mã IMEI (mỗi mã 1 dòng, hoặc ngăn cách bằng dấu phẩy)..." 
                 oninput="updateCountScanned()"></textarea>
               <div class="form-text">
-                <i class="bi bi-info-circle me-1"></i> Bạn có thể dùng đầu đọc mã vạch quét trực tiếp liên tục vào ô này, hoặc dán danh sách IMEI từ file Excel.
+                <i class="bi bi-info-circle me-1"></i> Bạn có thể dùng camera điện thoại quét trực tiếp, dùng đầu đọc mã vạch bắn liên tục, hoặc dán danh sách IMEI từ Excel.
               </div>
             </div>
 
@@ -377,6 +381,7 @@
 <script src="/js/api.js"></script>
 <script src="/js/layout.js"></script>
 <script src="/js/print-templates.js"></script>
+<script src="/js/camera-scanner.js"></script>
 <script src="/js/kiemke.js"></script>
 
 </body>

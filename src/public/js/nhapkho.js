@@ -221,6 +221,38 @@ function openBulkImportModal() {
   modal.show();
 }
 
+/**
+ * Mở camera quét liên tục mã IMEI vào ô nhập hàng loạt
+ */
+function openNhapKhoCameraScanner() {
+  if (typeof openCameraScanner === 'function') {
+    openCameraScanner({
+      title: 'Quét Mã Vạch Hộp Máy Nhập Kho',
+      continuous: true,
+      onScan: (code) => {
+        const textarea = document.getElementById('bulkInputImeis');
+        if (textarea) {
+          const currentVal = textarea.value.trim();
+          const existingList = currentVal ? currentVal.split(/[\n,]+/).map(s => s.trim()) : [];
+          if (existingList.includes(code)) {
+            if (typeof api !== 'undefined' && api.showToast) {
+              api.showToast(`Mã IMEI ${code} đã có trong danh sách!`, 'warning');
+            }
+            return;
+          }
+          textarea.value = currentVal ? `${currentVal}\n${code}` : code;
+          if (typeof api !== 'undefined' && api.showToast) {
+            api.showToast(`Đã quét thêm IMEI: ${code}`, 'success');
+          }
+        }
+      }
+    });
+  } else {
+    alert('Thư viện Camera Scanner chưa sẵn sàng');
+  }
+}
+window.openNhapKhoCameraScanner = openNhapKhoCameraScanner;
+
 function autoFillBulkGiaNhap(selectEl) {
   if (!selectEl) return;
   const opt = selectEl.options[selectEl.selectedIndex];

@@ -335,6 +335,39 @@ function updateCountScanned() {
 }
 
 /**
+ * Mở Camera quét mã vạch IMEI liên tục khi kiểm kê kho
+ */
+function openKiemKeCameraScanner() {
+  if (typeof openCameraScanner === 'function') {
+    openCameraScanner({
+      title: 'Quét Mã Vạch IMEI Kiểm Kê Kho Thực Tế',
+      continuous: true,
+      onScan: (code) => {
+        const textarea = document.getElementById('textareaImeiThucTe');
+        if (textarea) {
+          const currentVal = textarea.value.trim();
+          const existingList = currentVal ? currentVal.split(/[\n,;\t\r]+/).map(s => s.trim()) : [];
+          if (existingList.includes(code)) {
+            if (typeof api !== 'undefined' && api.showToast) {
+              api.showToast(`Mã IMEI ${code} đã được quét trước đó!`, 'warning');
+            }
+            return;
+          }
+          textarea.value = currentVal ? `${currentVal}\n${code}` : code;
+          updateCountScanned();
+          if (typeof api !== 'undefined' && api.showToast) {
+            api.showToast(`Đã ghi nhận IMEI: ${code}`, 'success');
+          }
+        }
+      }
+    });
+  } else {
+    alert('Thư viện Camera Scanner chưa sẵn sàng');
+  }
+}
+window.openKiemKeCameraScanner = openKiemKeCameraScanner;
+
+/**
  * Cuộn màn hình tới form kiểm kê
  */
 function scrollToKiemKeForm() {
