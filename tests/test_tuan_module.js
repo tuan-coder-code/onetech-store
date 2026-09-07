@@ -18,7 +18,7 @@ const {
   CongNo
 } = require('../src/models');
 
-const { HoaDonService, BaoHanhService, ThanhToanService, CongNoService, TonKhoService } = require('../src/services');
+const { HoaDonService, BaoHanhService, ThanhToanService, CongNoService, TonKhoService, KhachHangService } = require('../src/services');
 
 async function runTests() {
   console.log('===============================================================');
@@ -512,6 +512,85 @@ async function runTests() {
     assert(errUpdateGia !== null && errUpdateGia.statusCode === 400, 'Chặn cập nhật sản phẩm khi giá bán mới <= giá gốc');
 
     await SanPham.findByIdAndDelete(spHopLePR19._id);
+
+    // -------------------------------------------------------------
+    // TEST BỔ SUNG PR #20 & #21: Chống trùng lặp SĐT/Email/CCCD & POS Guest Checkout
+    // -------------------------------------------------------------
+    console.log('\n--- TEST BỔ SUNG PR #20 & #21: Chống trùng lặp & Bán hàng Khách mới ---');
+    
+    // 1. Chống trùng SĐT Khách hàng
+    const testPhone = '0988776655';
+    const khFirst = await KhachHangService.createKhachHang({
+      hoTen: 'Khach Hang Test Unique',
+      sdt: testPhone,
+      email: 'unique1@test.com',
+      cccd: '001099000111'
+    });
+
+    let errDupPhone = null;
+    try {
+      await KhachHangService.createKhachHang({
+        hoTen: 'Khach Hang Duplicate Phone',
+        sdt: testPhone, // SĐT đã tồn tại
+        email: 'unique2@test.com'
+      });
+    } catch (e) {
+      errDupPhone = e;
+    }
+    assert(errDupPhone !== null && errDupPhone.statusCode === 409, 'Chặn tạo khách hàng trùng SĐT (409 Conflict)');
+
+    // 2. Chống trùng Email Khách hàng
+    let errDupEmail = null;
+    try {
+      await KhachHangService.createKhachHang({
+        hoTen: 'Khach Hang Duplicate Email',
+        sdt: '0911223344',
+        email: 'unique1@test.com' // Email đã tồn tại
+      });
+    } catch (e) {
+      errDupEmail = e;
+    }
+    assert(errDupEmail !== null && errDupEmail.statusCode === 409, 'Chặn tạo khách hàng trùng Email (409 Conflict)');
+
+    // 3. Chống trùng CCCD Khách hàng
+    let errDupCccd = null;
+    try {
+      await KhachHangService.createKhachHang({
+        hoTen: 'Khach Hang Duplicate CCCD',
+        sdt: '0922334455',
+        cccd: '001099000111' // CCCD đã tồn tại
+      });
+    } catch (e) {
+      errDupCccd = e;
+    }
+    assert(errDupCccd !== null && errDupCccd.statusCode === 409, 'Chặn tạo khách hàng trùng CCCD (409 Conflict)');
+
+    // 4. POS Bán Hàng trực tiếp cho Khách mới (Guest Checkout)
+    const guestPhone = '0977889911';
+    const guestImei = 'TUAN_GUEST_' + Date.now().toString().slice(-6);
+    await MayImei.create({
+      imei: guestImei,
+      sanPham: spIphone._id,
+      giaNhap: 26000000,
+      trangThai: 'Con hang'
+    });
+
+    const guestOrderRes = await HoaDonService.taoHoaDonBanHang({
+      guestName: 'Nguyễn Văn Khách Mới',
+      guestPhone: guestPhone,
+      guestCccd: '036099887766',
+      danhSachIMEI: [guestImei],
+      danhSachPhuKien: []
+    }, nv);
+
+    assert(guestOrderRes.hoaDon !== undefined, 'Tạo hóa đơn POS khách mới thành công');
+    const createdGuest = await KhachHang.findOne({ sdt: guestPhone }).lean();
+    assert(createdGuest !== null, 'Hệ thống tự động sinh tài khoản Khách Hàng mới cho khách vãng lai');
+    assert(createdGuest && createdGuest.cccd === '036099887766', 'Lưu chính xác CCCD khách mới');
+
+    // Dọn dẹp bản ghi test
+    await KhachHang.findByIdAndDelete(khFirst._id);
+    await KhachHang.findByIdAndDelete(createdGuest._id);
 
     // 4. Máy IMEI
     const imeiRes = await MayImeiService.getAllImeis();

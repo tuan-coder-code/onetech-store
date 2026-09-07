@@ -81,6 +81,14 @@ Hệ thống được tổ chức theo mô hình **Layered MVC kết hợp OOP S
   - 4 thẻ thống kê tổng quan cơ cấu hàng hóa (Tổng DM, Model Điện thoại, Tablet, Phụ kiện).
   - Bố cục 2 cột cân đối: Danh sách phân loại (kèm icon theo tên danh mục) và Form thêm nhanh (Quick Add).
   - Tìm kiếm nhanh realtime có Debounce chống giật lag giao diện.
+* **Quản lý CCCD & Chống trùng lặp đa trường (`src/services/`, `src/models/`):**
+  - **Bổ sung CCCD:** Schema `KhachHang` và `NhanVien` được chuẩn hóa trường căn cước công dân (12 chữ số).
+  - **Chống trùng lặp dữ liệu toàn diện:** Ngăn chặn đăng ký trùng SĐT, Email, CCCD cho Khách hàng và Nhân viên; chặn trùng Tên và SĐT cho Nhà cung cấp với mã lỗi chuẩn `409 Conflict`.
+* **Bán hàng POS Khách mới vãng lai (Guest Checkout - `src/public/pages/ban-hang/`):**
+  - Hỗ trợ chuyển đổi linh hoạt giữa "Khách mới" và "Thành viên".
+  - Thu ngân có thể nhập trực tiếp Tên, SĐT, CCCD khách vãng lai ngay trên quầy thu ngân; `HoaDonService` tự động sinh tài khoản khách hàng mới vào hệ thống.
+* **Bộ lọc Ngày Doanh thu trên Dashboard (`src/public/pages/index.html`, `src/public/js/dashboard.js`):**
+  - Tích hợp bộ lọc khoảng ngày (Từ ngày - Đến ngày) kết hợp chuyển đổi phân nhóm Ngày/Tuần/Tháng/Năm trực quan trên Chart.js.
 * **Phân quyền Giao diện Đa tầng & Bảo vệ Điều hướng (Client-side RBAC & Route Guarding):**
   - **Lọc Sidebar thông minh theo 6 vai trò:** Tự động ẩn các menu và danh mục nhóm (`nav-category`) không thuộc quyền hạn để loại bỏ tình trạng rối mắt.
   - **Tùy biến Quick Actions trên Dashboard:** Tự động hiển thị các nút thao tác đầu trang phù hợp với vai trò (Bán hàng, Thủ kho, Thu ngân, Kỹ thuật, Kế toán, Quản lý).
@@ -102,7 +110,7 @@ onetech/
 ├── one_tech_store_erd.dbml              # Sơ đồ quan hệ thực thể ERD
 ├── README.md                            # Hướng dẫn cài đặt & tài khoản demo
 ├── PROJECT_WALKTHROUGH.md               # Bản Walkthrough kỹ thuật (File này)
-├── tests/                               # Bộ kiểm thử tự động (20 Test Suites, 790 Assertions)
+├── tests/                               # Bộ kiểm thử tự động (20 Test Suites, 796 Assertions)
 │   ├── run_all_tests.js                 # Master Test Runner chạy toàn bộ 20 suites
 │   ├── test_tuan_module.js              # Kiểm thử 60 test cases luồng Bán hàng POS, IMEI, Bảo hành
 │   ├── test_tuan_tuan5_6_e2e.js         # Kiểm thử 33 test cases Luồng E2E tích hợp Bán hàng POS, Cọc, Bảo hành, KPI (Tuần 5-6)
