@@ -33,6 +33,23 @@ class NhaCungCapService extends BaseService {
     if (!tenNCC || !tenNCC.trim()) {
       throw this.createError('Vui lòng nhập tên nhà cung cấp', 400);
     }
+    const tenNCC_trim = tenNCC.trim();
+    const sdt_trim = sdt ? sdt.trim() : '';
+
+    const orConditions = [{ tenNCC: new RegExp(`^${tenNCC_trim}$`, 'i') }];
+    if (sdt_trim) {
+      orConditions.push({ sdt: sdt_trim });
+    }
+
+    const existingNcc = await NhaCungCap.findOne({ $or: orConditions });
+    if (existingNcc) {
+      if (existingNcc.tenNCC.toLowerCase() === tenNCC_trim.toLowerCase()) {
+        throw this.createError(`Nhà cung cấp có tên "${existingNcc.tenNCC}" đã tồn tại`, 400);
+      }
+      if (sdt_trim && existingNcc.sdt === sdt_trim) {
+        throw this.createError(`Nhà cung cấp với số điện thoại "${sdt_trim}" đã tồn tại`, 400);
+      }
+    }
 
     return await NhaCungCap.create({
       tenNCC: tenNCC.trim(),
@@ -43,6 +60,27 @@ class NhaCungCapService extends BaseService {
 
   async updateNhaCungCap(id, payload = {}) {
     const { tenNCC, sdt, diaChi } = payload;
+    const tenNCC_trim = tenNCC ? tenNCC.trim() : undefined;
+    const sdt_trim = sdt !== undefined ? sdt.trim() : undefined;
+
+    if (tenNCC_trim || sdt_trim !== undefined) {
+      const orConditions = [];
+      if (tenNCC_trim) orConditions.push({ tenNCC: new RegExp(`^${tenNCC_trim}$`, 'i') });
+      if (sdt_trim) orConditions.push({ sdt: sdt_trim });
+
+      if (orConditions.length > 0) {
+        const existingNcc = await NhaCungCap.findOne({ _id: { $ne: id }, $or: orConditions });
+        if (existingNcc) {
+          if (tenNCC_trim && existingNcc.tenNCC.toLowerCase() === tenNCC_trim.toLowerCase()) {
+             throw this.createError(`Nhà cung cấp có tên "${existingNcc.tenNCC}" đã tồn tại`, 400);
+          }
+          if (sdt_trim && existingNcc.sdt === sdt_trim) {
+             throw this.createError(`Nhà cung cấp với số điện thoại "${sdt_trim}" đã tồn tại`, 400);
+          }
+        }
+      }
+    }
+
     const updated = await NhaCungCap.findByIdAndUpdate(
       id,
       {

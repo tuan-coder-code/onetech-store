@@ -63,6 +63,12 @@ class KhachHangService extends BaseService {
       throw this.createError('Số điện thoại không hợp lệ (yêu cầu 10 chữ số)', 400);
     }
 
+    const sdt_trim = sdt.trim();
+    const existingKh = await KhachHang.findOne({ sdt: sdt_trim });
+    if (existingKh) {
+      throw this.createError(`Khách hàng với số điện thoại ${sdt_trim} đã tồn tại trong hệ thống`, 400);
+    }
+
     return await KhachHang.create({
       hoTen: formatName(hoTen),
       sdt: sdt.trim(),
@@ -75,10 +81,18 @@ class KhachHangService extends BaseService {
 
   async updateKhachHang(id, payload = {}) {
     const { hoTen, sdt, cccd, diaChi, email, status } = payload;
-    if (sdt && !validatePhone(sdt)) {
-      throw this.createError('Số điện thoại không hợp lệ (yêu cầu 10 chữ số)', 400);
-    }
     
+    if (sdt !== undefined) {
+      if (!validatePhone(sdt)) {
+        throw this.createError('Số điện thoại không hợp lệ (yêu cầu 10 chữ số)', 400);
+      }
+      const sdt_trim = sdt.trim();
+      const existingKh = await KhachHang.findOne({ sdt: sdt_trim, _id: { $ne: id } });
+      if (existingKh) {
+        throw this.createError(`Khách hàng với số điện thoại ${sdt_trim} đã tồn tại trong hệ thống`, 400);
+      }
+    }
+
     const updated = await KhachHang.findByIdAndUpdate(
       id,
       {
