@@ -692,9 +692,11 @@ document.addEventListener('DOMContentLoaded', async () => {
           <td>${statusBadge}</td>
           <td class="text-muted small">${dateStr}</td>
           <td class="text-end pe-3">
-            <button type="button" class="btn btn-sm btn-outline-primary btn-view-detail" data-id="${item._id}" title="Xem chi tiết">
-              <i class="bi bi-eye"></i>
-            </button>
+            <div class="d-inline-flex justify-content-end align-items-center">
+              <button type="button" class="btn-action btn-action-view btn-view-detail" data-id="${item._id}" title="Xem chi tiết">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
           </td>
         </tr>
       `;

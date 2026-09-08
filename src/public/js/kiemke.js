@@ -324,19 +324,19 @@ async function loadLichSuKiemKe(page = 1) {
           <td class="text-center ${item.tongLech > 0 ? 'text-danger fw-bold' : 'text-muted'}">${item.tongLech || 0}</td>
           <td class="text-center">${statusBadge}</td>
           <td class="text-center">
-            <div class="btn-group btn-group-sm">
-              <button class="btn btn-outline-info" title="Xem chi tiết" onclick="openChiTietBienBanModal('${item._id}')">
+            <div class="d-inline-flex justify-content-center align-items-center" style="gap: 6px;">
+              <button class="btn-action btn-action-view" title="Xem chi tiết" onclick="openChiTietBienBanModal('${item._id}')">
                 <i class="bi bi-eye"></i>
               </button>
-              <button class="btn btn-outline-secondary" title="In biên bản" onclick="inBienBanTheoId('${item._id}')">
+              <button class="btn-action btn-action-print" title="In biên bản" onclick="inBienBanTheoId('${item._id}')">
                 <i class="bi bi-printer"></i>
               </button>
               ${canApply ? `
-              <button class="btn btn-outline-success" title="Áp dụng điều chỉnh kho" onclick="apDungDieuChinhKho('${item._id}')">
+              <button class="btn-action btn-action-deliver" title="Áp dụng điều chỉnh kho" onclick="apDungDieuChinhKho('${item._id}')">
                 <i class="bi bi-check-lg"></i>
               </button>` : ''}
               ${canCancel ? `
-              <button class="btn btn-outline-danger" title="Hủy biên bản" onclick="huyBienBanKiemKe('${item._id}')">
+              <button class="btn-action btn-action-cancel" title="Hủy biên bản" onclick="huyBienBanKiemKe('${item._id}')">
                 <i class="bi bi-trash"></i>
               </button>` : ''}
             </div>

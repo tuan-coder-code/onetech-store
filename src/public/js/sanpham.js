@@ -108,21 +108,21 @@ async function loadSanPhamList() {
             <span class="text-muted small ms-1">(Tổng: ${qtyTong})</span>
           </a>
         </td>
-        <td class="text-end">
-          <div class="btn-group btn-group-sm">
-            <a href="/may-imei/form.html?sanPhamId=${sp._id}" class="btn btn-outline-success" title="Nhập thêm IMEI cho máy này">
+        <td class="text-end pe-3">
+          <div class="d-inline-flex justify-content-end align-items-center" style="gap: 6px;">
+            <a href="/may-imei/form.html?sanPhamId=${sp._id}" class="btn-action btn-action-deliver" title="Nhập thêm IMEI cho máy này">
               <i class="bi bi-plus-circle"></i>
             </a>
-            <a href="/san-pham/detail.html?id=${sp._id}" class="btn btn-outline-info" title="Xem chi tiết & danh sách IMEI">
+            <a href="/san-pham/detail.html?id=${sp._id}" class="btn-action btn-action-view" title="Xem chi tiết & danh sách IMEI">
               <i class="bi bi-eye"></i>
             </a>
             ${isManagerOrStorekeeper ? `
-              <a href="/san-pham/form.html?id=${sp._id}" class="btn btn-outline-primary" title="Chỉnh sửa">
+              <a href="/san-pham/form.html?id=${sp._id}" class="btn-action btn-action-edit" title="Chỉnh sửa">
                 <i class="bi bi-pencil"></i>
               </a>
             ` : ''}
             ${isManager ? `
-              <button type="button" class="btn btn-outline-danger" title="Xóa" onclick="deleteSanPham('${sp._id}', '${escapeHtml(sp.tenMay)}')">
+              <button type="button" class="btn-action btn-action-cancel" title="Xóa" onclick="deleteSanPham('${sp._id}', '${escapeHtml(sp.tenMay)}')">
                 <i class="bi bi-trash"></i>
               </button>
             ` : ''}

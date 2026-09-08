@@ -126,15 +126,15 @@ async function loadPhuKienList() {
             ${pk.soLuongTon} cái
           </span>
         </td>
-        <td class="text-end">
-          <div class="btn-group btn-group-sm">
+        <td class="text-end pe-3">
+          <div class="d-inline-flex justify-content-end align-items-center" style="gap: 6px;">
             ${isManagerOrStorekeeper ? `
-              <button type="button" class="btn btn-outline-primary" title="Sửa" onclick="openEditPKModal('${pk._id}')">
+              <button type="button" class="btn-action btn-action-edit" title="Sửa" onclick="openEditPKModal('${pk._id}')">
                 <i class="bi bi-pencil"></i>
               </button>
             ` : ''}
             ${isManager ? `
-              <button type="button" class="btn btn-outline-danger" title="Xóa" onclick="deletePhuKien('${pk._id}', '${escapeHtml(pk.tenPK)}')">
+              <button type="button" class="btn-action btn-action-cancel" title="Xóa" onclick="deletePhuKien('${pk._id}', '${escapeHtml(pk.tenPK)}')">
                 <i class="bi bi-trash"></i>
               </button>
             ` : ''}

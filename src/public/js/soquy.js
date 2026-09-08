@@ -130,7 +130,7 @@ function renderGiaoDichTable(list) {
         <td><div class="fw-semibold text-truncate" style="max-width: 280px;" title="${escapeHtml(item.noiDung || '')}">${escapeHtml(item.noiDung || '---')}</div></td>
         <td><span class="badge bg-secondary-subtle text-dark">${escapeHtml(item.lienKet || '---')}</span></td>
         <td class="text-center">
-          <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="viewTransactionDetail('${item._id}', '${item.loai}')" title="Xem chi tiết">
+          <button class="btn-action btn-action-view" onclick="viewTransactionDetail('${item._id}', '${item.loai}')" title="Xem chi tiết">
             <i class="bi bi-eye"></i>
           </button>
         </td>
@@ -176,8 +176,8 @@ async function loadDanhSachThu() {
         <td><span class="badge bg-light text-dark border">${escapeHtml(lienKet)}</span></td>
         <td><div class="text-muted small text-truncate" style="max-width: 250px;">${escapeHtml(pt.ghiChu || '---')}</div></td>
         <td class="text-center">
-          <button class="btn btn-sm btn-outline-primary" onclick="viewTransactionDetail('${pt._id}', 'THU')">
-            <i class="bi bi-receipt me-1"></i> Chi tiết
+          <button class="btn-action btn-action-view" onclick="viewTransactionDetail('${pt._id}', 'THU')" title="Xem chi tiết phiếu thu">
+            <i class="bi bi-receipt"></i>
           </button>
         </td>
       </tr>
@@ -221,8 +221,8 @@ async function loadDanhSachChi() {
         <td><span class="badge bg-light text-dark border">${escapeHtml(lienKet)}</span></td>
         <td><div class="text-muted small text-truncate" style="max-width: 250px;">${escapeHtml(pc.lyDo || '---')}</div></td>
         <td class="text-center">
-          <button class="btn btn-sm btn-outline-danger" onclick="viewTransactionDetail('${pc._id}', 'CHI')">
-            <i class="bi bi-receipt me-1"></i> Chi tiết
+          <button class="btn-action btn-action-view" onclick="viewTransactionDetail('${pc._id}', 'CHI')" title="Xem chi tiết phiếu chi">
+            <i class="bi bi-receipt"></i>
           </button>
         </td>
       </tr>
