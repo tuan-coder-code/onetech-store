@@ -305,7 +305,10 @@ class HoaDonService extends BaseService {
       soTienGiam = 0,
       donDatHangId,
       donDatHang,
-      maDat
+      maDat,
+      guestName,
+      guestPhone,
+      guestCccd
     } = payload;
 
     const targetDatHangId = donDatHangId || donDatHang || maDat;
@@ -348,6 +351,34 @@ class HoaDonService extends BaseService {
       }
 
       tienCocDaTru = donDatHangDoc.soTienCoc || 0;
+    }
+
+    // 1.1 Xử lý tự động tạo Khách hàng vãng lai nếu chưa có
+    if (!khachHang && guestName && guestPhone) {
+      const sdtGuest = guestPhone.trim();
+      if (!/^[0-9]{10}$/.test(sdtGuest)) {
+        throw this.createError('Số điện thoại khách hàng không hợp lệ (yêu cầu 10 chữ số)', 400);
+      }
+      if (guestCccd && guestCccd.trim() && !/^[0-9]{12}$/.test(guestCccd.trim())) {
+        throw this.createError('Căn cước công dân không hợp lệ (yêu cầu 12 chữ số)', 400);
+      }
+      let existingCustomer = await KhachHang.findOne({ sdt: sdtGuest });
+      if (existingCustomer) {
+        khachHang = existingCustomer._id;
+        // Cập nhật CCCD nếu có nhập mà trước đó chưa có
+        if (guestCccd && !existingCustomer.cccd) {
+          existingCustomer.cccd = guestCccd.trim();
+          await existingCustomer.save();
+        }
+      } else {
+        const newCustomer = await KhachHang.create({
+          hoTen: guestName.trim(),
+          sdt: sdtGuest,
+          cccd: guestCccd ? guestCccd.trim() : undefined,
+          hangThanhVien: 'Đồng'
+        });
+        khachHang = newCustomer._id;
+      }
     }
 
     // Chuẩn hóa danh sách IMEI dạng string

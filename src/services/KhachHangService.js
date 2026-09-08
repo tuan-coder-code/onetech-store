@@ -55,7 +55,7 @@ class KhachHangService extends BaseService {
   }
 
   async createKhachHang(payload = {}) {
-    const { hoTen, sdt, diaChi, email } = payload;
+    const { hoTen, sdt, cccd, diaChi, email } = payload;
     if (!hoTen || !hoTen.trim()) {
       throw this.createError('Vui lòng nhập họ tên khách hàng', 400);
     }
@@ -63,9 +63,33 @@ class KhachHangService extends BaseService {
       throw this.createError('Số điện thoại không hợp lệ (yêu cầu 10 chữ số)', 400);
     }
 
+    const sdt_trim = sdt.trim();
+    const existPhone = await KhachHang.findOne({ sdt: sdt_trim }).lean();
+    if (existPhone) {
+      throw this.createError(`Số điện thoại ${sdt_trim} đã được đăng ký cho một khách hàng khác`, 409);
+    }
+
+    if (email && email.trim() !== '') {
+      const existEmail = await KhachHang.findOne({ email: email.trim() }).lean();
+      if (existEmail) {
+        throw this.createError('Email đã được đăng ký cho một khách hàng khác', 409);
+      }
+    }
+
+    if (cccd && cccd.trim() !== '') {
+      if (!/^[0-9]{12}$/.test(cccd.trim())) {
+        throw this.createError('Căn cước công dân không hợp lệ (yêu cầu 12 chữ số)', 400);
+      }
+      const existCccd = await KhachHang.findOne({ cccd: cccd.trim() }).lean();
+      if (existCccd) {
+        throw this.createError('Căn cước công dân đã được đăng ký cho một khách hàng khác', 409);
+      }
+    }
+
     return await KhachHang.create({
       hoTen: formatName(hoTen),
-      sdt: sdt.trim(),
+      sdt: sdt_trim,
+      cccd: cccd ? cccd.trim() : undefined,
       diaChi: formatName(diaChi),
       email: email ? email.trim() : '',
       status: true
@@ -73,16 +97,45 @@ class KhachHangService extends BaseService {
   }
 
   async updateKhachHang(id, payload = {}) {
-    const { hoTen, sdt, diaChi, email, status } = payload;
-    if (sdt && !validatePhone(sdt)) {
-      throw this.createError('Số điện thoại không hợp lệ (yêu cầu 10 chữ số)', 400);
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw this.createError('ID khách hàng không hợp lệ', 400);
     }
+    const { hoTen, sdt, cccd, diaChi, email, status } = payload;
     
+    if (sdt !== undefined) {
+      if (!validatePhone(sdt)) {
+        throw this.createError('Số điện thoại không hợp lệ (yêu cầu 10 chữ số)', 400);
+      }
+      const sdt_trim = sdt.trim();
+      const existPhone = await KhachHang.findOne({ sdt: sdt_trim, _id: { $ne: id } }).lean();
+      if (existPhone) {
+        throw this.createError(`Số điện thoại ${sdt_trim} đã được đăng ký cho một khách hàng khác`, 409);
+      }
+    }
+
+    if (email && email.trim() !== '') {
+      const existEmail = await KhachHang.findOne({ email: email.trim(), _id: { $ne: id } }).lean();
+      if (existEmail) {
+        throw this.createError('Email đã được đăng ký cho một khách hàng khác', 409);
+      }
+    }
+
+    if (cccd && cccd.trim() !== '') {
+      if (!/^[0-9]{12}$/.test(cccd.trim())) {
+        throw this.createError('Căn cước công dân không hợp lệ (yêu cầu 12 chữ số)', 400);
+      }
+      const existCccd = await KhachHang.findOne({ cccd: cccd.trim(), _id: { $ne: id } }).lean();
+      if (existCccd) {
+        throw this.createError('Căn cước công dân đã được đăng ký cho một khách hàng khác', 409);
+      }
+    }
+
     const updated = await KhachHang.findByIdAndUpdate(
       id,
       {
         hoTen: hoTen ? formatName(hoTen) : undefined,
         sdt: sdt !== undefined ? sdt.trim() : undefined,
+        cccd: cccd !== undefined ? cccd.trim() : undefined,
         diaChi: diaChi !== undefined ? formatName(diaChi) : undefined,
         email: email !== undefined ? email.trim() : undefined,
         status: status !== undefined ? status : undefined

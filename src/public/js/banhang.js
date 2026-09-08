@@ -18,6 +18,35 @@ let allKhachHangs = [];
 let preOrderModalInstance = null;
 
 /**
+ * Chuyển đổi hiển thị giữa Khách mới và Thành viên
+ */
+window.toggleCustomerType = function() {
+  const type = document.querySelector('input[name="customerType"]:checked')?.value;
+  const guestInputs = document.getElementById('guestCustomerInputs');
+  const memberSelect = document.getElementById('memberCustomerSelect');
+  
+  if (type === 'guest') {
+    guestInputs.classList.remove('d-none');
+    memberSelect.classList.add('d-none');
+    
+    // Add required
+    document.getElementById('inputGuestName').setAttribute('required', 'required');
+    document.getElementById('inputGuestPhone').setAttribute('required', 'required');
+    // Remove required from select
+    document.getElementById('selectKhachHang').removeAttribute('required');
+  } else {
+    guestInputs.classList.add('d-none');
+    memberSelect.classList.remove('d-none');
+    
+    // Remove required
+    document.getElementById('inputGuestName').removeAttribute('required');
+    document.getElementById('inputGuestPhone').removeAttribute('required');
+    // Add required to select
+    document.getElementById('selectKhachHang').setAttribute('required', 'required');
+  }
+};
+
+/**
  * Hiệu ứng âm thanh POS khi quét mã vạch Barcode IMEI
  */
 function playBeep(type = 'success') {
@@ -110,6 +139,24 @@ function handleScanOrEnterImei(rawText) {
     showToast(`Không tìm thấy máy IMEI "${keyword}" còn hàng trong kho!`, 'danger');
   }
 }
+
+/**
+ * Mở Camera quét mã vạch IMEI / QR Code trực tiếp qua camera điện thoại / webcam
+ */
+function openImeiCameraScanner() {
+  if (typeof openCameraScanner === 'function') {
+    openCameraScanner({
+      title: 'Quét Mã Vạch IMEI / Hộp Máy',
+      onScan: (code) => {
+        switchToPosTab();
+        handleScanOrEnterImei(code);
+      }
+    });
+  } else {
+    alert('Thư viện Camera Scanner chưa sẵn sàng');
+  }
+}
+window.openImeiCameraScanner = openImeiCameraScanner;
 
 function initGlobalBarcodeListener() {
   document.addEventListener('keydown', (e) => {
@@ -292,6 +339,11 @@ async function loadPosData() {
 
   if (resImei.success) {
     allAvailableImeis = Array.isArray(resImei.data) ? resImei.data : (resImei.data?.imeis || resImei.data?.data || []);
+    allAvailableImeis.forEach(m => {
+      if (m.sanPham && m.sanPham.dungLuong && !m.sanPham.tenMay.includes(m.sanPham.dungLuong)) {
+        m.sanPham.tenMay = m.sanPham.tenMay + ' ' + m.sanPham.dungLuong;
+      }
+    });
   }
   if (resPk.success) {
     allPhuKiens = Array.isArray(resPk.data) ? resPk.data : (resPk.data?.phuKiens || resPk.data?.data || []);
@@ -302,6 +354,11 @@ async function loadPosData() {
   }
   if (resSp.success) {
     allSanPhams = Array.isArray(resSp.data) ? resSp.data : (resSp.data?.sanPhams || resSp.data?.data || []);
+    allSanPhams.forEach(sp => {
+      if (sp.dungLuong && !sp.tenMay.includes(sp.dungLuong)) {
+        sp.tenMay = sp.tenMay + ' ' + sp.dungLuong;
+      }
+    });
     renderSanPhamOptions();
   }
 
@@ -611,6 +668,11 @@ async function loadPreOrders(search = '') {
   }
 
   availablePreOrders = res.data || [];
+  availablePreOrders.forEach(d => {
+    if (d.sanPham && d.sanPham.dungLuong && !d.sanPham.tenMay.includes(d.sanPham.dungLuong)) {
+      d.sanPham.tenMay = d.sanPham.tenMay + ' ' + d.sanPham.dungLuong;
+    }
+  });
   if (availablePreOrders.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted small">Không tìm thấy đơn đặt hàng trước nào còn hiệu lực</td></tr>`;
     return;
@@ -704,7 +766,27 @@ async function handleCreateOrder() {
     return;
   }
 
-  const khachHang = document.getElementById('selectKhachHang')?.value || null;
+  let khachHang = null;
+  let guestName = '';
+  let guestPhone = '';
+  let guestCccd = '';
+
+  const customerType = document.querySelector('input[name="customerType"]:checked')?.value;
+  if (customerType === 'member') {
+    khachHang = document.getElementById('selectKhachHang')?.value || null;
+    if (!khachHang) {
+      showToast('Vui lòng chọn Thành viên', 'warning');
+      return;
+    }
+  } else {
+    guestName = document.getElementById('inputGuestName')?.value.trim();
+    guestPhone = document.getElementById('inputGuestPhone')?.value.trim();
+    guestCccd = document.getElementById('inputGuestCccd')?.value.trim();
+    if (!guestName || !guestPhone) {
+      showToast('Vui lòng nhập Tên và Số điện thoại khách hàng', 'warning');
+      return;
+    }
+  }
   const hinhThucThanhToan = document.getElementById('selectPaymentMethod')?.value || 'Da thanh toan';
   const ghiChu = document.getElementById('inputGhiChu')?.value || '';
   const inputDiscount = document.getElementById('inputSoTienGiam');
@@ -712,6 +794,9 @@ async function handleCreateOrder() {
 
   const payload = {
     khachHang,
+    guestName,
+    guestPhone,
+    guestCccd,
     danhSachIMEI: cart.imeis.map(m => m.imei),
     danhSachPhuKien: cart.phuKiens.map(pk => ({
       phuKien: pk._id,
@@ -843,6 +928,13 @@ async function viewInvoiceDetail(id) {
   }
 
   const { hoaDon, danhSachMay, danhSachPhuKien, phieuXuatKho } = res;
+  if (danhSachMay) {
+    danhSachMay.forEach(m => {
+      if (m.sanPham && m.sanPham.dungLuong && !m.sanPham.tenMay.includes(m.sanPham.dungLuong)) {
+        m.sanPham.tenMay = m.sanPham.tenMay + ' ' + m.sanPham.dungLuong;
+      }
+    });
+  }
   const content = document.getElementById('invoiceDetailContent');
   if (!content) return;
 

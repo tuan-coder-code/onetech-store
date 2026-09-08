@@ -155,12 +155,9 @@ async function loadDashboardData() {
   animateCount('statTotalNhanVien', stats.totalNhanVien || 0, 600);
 
   // Render nút thao tác nhanh
-  if (currentUser) {
-    renderDashboardActions(currentUser);
-  } else {
-    setTimeout(() => {
-      if (currentUser) renderDashboardActions(currentUser);
-    }, 150);
+  const user = await getCurrentUser();
+  if (user) {
+    renderDashboardActions(user);
   }
 
   // Render bảng IMEI mới nhất
@@ -201,35 +198,141 @@ async function loadDashboardData() {
 }
 
 /**
+ * Lấy thông tin người dùng hiện tại an toàn
+ */
+async function getCurrentUser() {
+  if (currentUser && currentUser.vaiTro) return currentUser;
+  if (window.currentUser && window.currentUser.vaiTro) {
+    currentUser = window.currentUser;
+    return currentUser;
+  }
+  try {
+    const res = await api.get('/auth/me');
+    if (res && res.success) {
+      currentUser = res.user || (res.data && res.data.user) || (res.data && res.data.hoTen ? res.data : null);
+      window.currentUser = currentUser;
+      return currentUser;
+    }
+  } catch (err) {
+    console.warn('Lỗi lấy thông tin phiên đăng nhập:', err.message);
+  }
+  return null;
+}
+
+/**
+ * Kiểm tra xem người dùng có quyền xem báo cáo tài chính doanh thu / chi phí
+ */
+function hasFinancialReportPermission(user) {
+  if (!user || !user.vaiTro) return false;
+  return ['Quản lý', 'Admin', 'Kế toán'].includes(user.vaiTro);
+}
+
+/**
+ * Render giao diện phân quyền bảo mật cho vai trò không có quyền xem Doanh thu & Chi phí
+ */
+function renderRestrictedChartCard(user) {
+  const roleName = user?.vaiTro || 'Nhân viên';
+
+  // 1. Ẩn bộ lọc ngày và các nút nhóm thời gian
+  const controls = document.getElementById('revenueChartControls');
+  if (controls) {
+    controls.innerHTML = `
+      <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2.5 py-1 rounded-pill small">
+        <i class="bi bi-shield-lock-fill me-1"></i> Dành riêng Quản lý & Kế toán
+      </span>
+    `;
+  }
+
+  // 2. Thay thế canvas bằng thông báo bảo mật sang trọng, chuyên nghiệp
+  const chartContainer = document.getElementById('canvasRevenueChartContainer');
+  if (chartContainer) {
+    let quickLink = '';
+    if (roleName === 'NV bán hàng') {
+      quickLink = `<a href="/ban-hang/index.html" class="btn btn-primary btn-sm"><i class="bi bi-cart-check me-1"></i> Đến Bán Hàng POS</a>`;
+    } else if (roleName === 'Thủ kho') {
+      quickLink = `<a href="/nhap-kho/index.html" class="btn btn-primary btn-sm"><i class="bi bi-box-arrow-in-down me-1"></i> Đến Nhập Kho</a>`;
+    } else if (roleName === 'Thu ngân') {
+      quickLink = `<a href="/ban-hang/index.html" class="btn btn-primary btn-sm"><i class="bi bi-cart-check me-1"></i> Đến Bán Hàng POS</a>`;
+    } else if (roleName === 'Kỹ thuật') {
+      quickLink = `<a href="/bao-hanh/index.html" class="btn btn-primary btn-sm"><i class="bi bi-shield-check me-1"></i> Đến Tra Cứu Bảo Hành</a>`;
+    }
+
+    chartContainer.innerHTML = `
+      <div class="d-flex flex-column align-items-center justify-content-center text-center h-100 p-4" style="background: linear-gradient(135deg, rgba(248,250,252,0.9) 0%, rgba(241,245,249,0.95) 100%); border-radius: 12px; border: 1.5px dashed #cbd5e1;">
+        <div class="stat-icon purple mb-3" style="width: 52px; height: 52px; font-size: 1.4rem;">
+          <i class="bi bi-shield-lock-fill"></i>
+        </div>
+        <h6 class="fw-bold text-dark mb-1">Báo Cáo Doanh Thu & Chi Phí Tài Chính</h6>
+        <p class="text-muted small mb-3" style="max-width: 440px; line-height: 1.5;">
+          Số liệu doanh thu thuần, chi phí và lợi nhuận được phân quyền bảo mật, chỉ hiển thị cho tài khoản vai trò <b>Quản lý</b> và <b>Kế toán</b>.
+        </p>
+        <div class="d-flex flex-wrap align-items-center justify-content-center gap-2">
+          <span class="badge bg-secondary-subtle text-secondary border px-2.5 py-1.5 font-monospace">
+            <i class="bi bi-person-badge me-1"></i> Vai trò của bạn: <b>${escapeHtml(roleName)}</b>
+          </span>
+          ${quickLink}
+        </div>
+      </div>
+    `;
+  }
+
+  // 3. Hiển thị các thẻ tóm tắt dưới dạng bảo mật
+  const cardTongDoanhThu = document.getElementById('cardTongDoanhThu');
+  const cardTongChiPhi = document.getElementById('cardTongChiPhi');
+  const cardLoiNhuanGop = document.getElementById('cardLoiNhuanGop');
+
+  if (cardTongDoanhThu) {
+    cardTongDoanhThu.innerHTML = '<span class="text-muted small font-monospace"><i class="bi bi-lock-fill me-1"></i>Bảo mật</span>';
+  }
+  if (cardTongChiPhi) {
+    cardTongChiPhi.innerHTML = '<span class="text-muted small font-monospace"><i class="bi bi-lock-fill me-1"></i>Bảo mật</span>';
+  }
+  if (cardLoiNhuanGop) {
+    cardLoiNhuanGop.innerHTML = '<span class="text-muted small font-monospace"><i class="bi bi-lock-fill me-1"></i>Bảo mật</span>';
+  }
+}
+
+/**
  * Tải Báo Cáo Tài Chính, Biểu Đồ Doanh Thu, Top SP & Hàng Tồn Lâu Ngày
  */
 async function loadFinancialReports() {
   try {
-    // 1. Tải dữ liệu doanh thu & vẽ biểu đồ
-    await updateRevenueChart(currentChartGroup);
+    const user = await getCurrentUser();
 
-    // 2. Tải Top sản phẩm bán chạy
-    const resTop = await api.get('/bao-cao/top-san-pham?limit=5');
-    const tbodyTop = document.getElementById('tbodyTopSanPham');
-    if (tbodyTop && resTop && resTop.success && resTop.data) {
-      const { topTheoSoLuong = [] } = resTop.data;
-      if (topTheoSoLuong.length === 0) {
-        tbodyTop.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-3">Chưa có dữ liệu bán hàng</td></tr>';
-      } else {
-        tbodyTop.innerHTML = topTheoSoLuong.map((item, idx) => `
-          <tr>
-            <td>
-              <div class="fw-bold">${idx + 1}. ${escapeHtml(item.tenMay)}</div>
-              <div class="small text-muted">${escapeHtml(item.hang || 'N/A')}</div>
-            </td>
-            <td class="text-center"><span class="badge bg-primary-subtle text-primary fw-bold">${item.soLuongBan}</span></td>
-            <td class="text-end fw-bold text-success">${formatCurrency(item.doanhThu)}</td>
-          </tr>
-        `).join('');
-      }
+    // 1. Tải dữ liệu doanh thu & vẽ biểu đồ (hoặc hiển thị thẻ bảo mật nếu không có quyền)
+    if (hasFinancialReportPermission(user)) {
+      await updateRevenueChart(currentChartGroup);
+    } else {
+      renderRestrictedChartCard(user);
     }
 
-    // 3. Tải Hàng tồn lâu ngày
+    // 2. Tải Top sản phẩm bán chạy (Chỉ dành cho Quản lý, Kế toán, NV bán hàng, Thủ kho)
+    const tbodyTop = document.getElementById('tbodyTopSanPham');
+    const canViewTopSp = !user || ['Quản lý', 'Admin', 'Kế toán', 'NV bán hàng', 'Thủ kho'].includes(user.vaiTro);
+    if (canViewTopSp) {
+      const resTop = await api.get('/bao-cao/top-san-pham?limit=5');
+      if (tbodyTop && resTop && resTop.success && resTop.data) {
+        const { topTheoSoLuong = [] } = resTop.data;
+        if (topTheoSoLuong.length === 0) {
+          tbodyTop.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-3">Chưa có dữ liệu bán hàng</td></tr>';
+        } else {
+          tbodyTop.innerHTML = topTheoSoLuong.map((item, idx) => `
+            <tr>
+              <td>
+                <div class="fw-bold">${idx + 1}. ${escapeHtml(item.tenMay)}</div>
+                <div class="small text-muted">${escapeHtml(item.hang || 'N/A')}</div>
+              </td>
+              <td class="text-center"><span class="badge bg-primary-subtle text-primary fw-bold">${item.soLuongBan}</span></td>
+              <td class="text-end fw-bold text-success">${formatCurrency(item.doanhThu)}</td>
+            </tr>
+          `).join('');
+        }
+      }
+    } else if (tbodyTop) {
+      tbodyTop.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-3"><i class="bi bi-shield-lock me-1"></i> Số liệu chỉ dành cho bộ phận Bán hàng & Kho</td></tr>';
+    }
+
+    // 3. Tải Hàng tồn lâu ngày (tất cả 6 vai trò đều có quyền)
     const resTon = await api.get('/bao-cao/ton-lau-ngay?soNgay=30&limit=5');
     const tableTonKhoLau = document.getElementById('tableTonKhoLauNgay');
     const badgeCountTonLau = document.getElementById('badgeCountTonLau');
@@ -277,14 +380,75 @@ async function switchChartGroup(group) {
 }
 
 /**
+ * Lọc biểu đồ doanh thu theo ngày
+ */
+async function filterRevenueChart() {
+  const user = await getCurrentUser();
+  if (!hasFinancialReportPermission(user)) {
+    if (typeof api !== 'undefined' && api.showToast) {
+      api.showToast('Bạn không có quyền lọc báo cáo tài chính doanh thu', 'warning');
+    }
+    return;
+  }
+
+  const tuNgay = document.getElementById('inputFilterTuNgay')?.value;
+  const denNgay = document.getElementById('inputFilterDenNgay')?.value;
+  if (!tuNgay && !denNgay) {
+    if (typeof api !== 'undefined' && api.showToast) {
+      api.showToast('Vui lòng chọn Từ ngày hoặc Đến ngày để lọc', 'warning');
+    } else {
+      alert('Vui lòng chọn Từ ngày hoặc Đến ngày để lọc');
+    }
+    return;
+  }
+  
+  if (tuNgay && denNgay && new Date(tuNgay) > new Date(denNgay)) {
+    if (typeof api !== 'undefined' && api.showToast) {
+      api.showToast('Từ ngày không được lớn hơn Đến ngày', 'warning');
+    } else {
+      alert('Từ ngày không được lớn hơn Đến ngày');
+    }
+    return;
+  }
+  
+  await updateRevenueChart(currentChartGroup);
+}
+
+/**
  * Vẽ / Cập nhật Biểu đồ Chart.js
  */
 async function updateRevenueChart(group = 'ngay') {
-  const canvas = document.getElementById('canvasRevenueChart');
+  const user = await getCurrentUser();
+  if (!hasFinancialReportPermission(user)) {
+    renderRestrictedChartCard(user);
+    return;
+  }
+
+  // Khôi phục canvas nếu trước đó bị thay thế
+  const chartContainer = document.getElementById('canvasRevenueChartContainer');
+  let canvas = document.getElementById('canvasRevenueChart');
+  if (!canvas && chartContainer) {
+    chartContainer.innerHTML = '<canvas id="canvasRevenueChart"></canvas>';
+    canvas = document.getElementById('canvasRevenueChart');
+  }
+
   if (!canvas || typeof Chart === 'undefined') return;
 
-  const res = await api.get(`/bao-cao/doanh-thu?nhom=${group}`);
-  if (!res || !res.success || !res.data) return;
+  const tuNgay = document.getElementById('inputFilterTuNgay')?.value || '';
+  const denNgay = document.getElementById('inputFilterDenNgay')?.value || '';
+  let url = `/bao-cao/doanh-thu?nhom=${group}`;
+  if (tuNgay) url += `&tuNgay=${tuNgay}`;
+  if (denNgay) url += `&denNgay=${denNgay}`;
+
+  const res = await api.get(url);
+  if (!res || !res.success || !res.data) {
+    if (res && (res.status === 403 || res.statusCode === 403)) {
+      renderRestrictedChartCard(user);
+      return;
+    }
+    console.warn('Không thể tải báo cáo doanh thu:', res?.message);
+    return;
+  }
 
   const { tongQuan = {}, bieuDo = {} } = res.data;
 
@@ -301,9 +465,11 @@ async function updateRevenueChart(group = 'ngay') {
     cardLoiNhuanGop.className = `fw-bold fs-6 ${ln >= 0 ? 'text-success' : 'text-danger'}`;
   }
 
-  const labels = bieuDo.labels && bieuDo.labels.length > 0 ? bieuDo.labels : ['Hôm nay'];
-  const doanhThuData = bieuDo.doanhThu && bieuDo.doanhThu.length > 0 ? bieuDo.doanhThu : [tongQuan.tongDoanhThu || 0];
-  const chiPhiData = bieuDo.chiPhi && bieuDo.chiPhi.length > 0 ? bieuDo.chiPhi : [tongQuan.tongChiPhi || 0];
+  const hasData = bieuDo.labels && bieuDo.labels.length > 0;
+  const labels = hasData ? bieuDo.labels : ['Chưa có phát sinh'];
+  const doanhThuData = hasData && bieuDo.doanhThu ? bieuDo.doanhThu : [0];
+  const chiPhiData = hasData && bieuDo.chiPhi ? bieuDo.chiPhi : [0];
+  const isSinglePoint = labels.length === 1;
 
   if (revenueChartInstance) {
     revenueChartInstance.destroy();
@@ -320,26 +486,33 @@ async function updateRevenueChart(group = 'ngay') {
           data: doanhThuData,
           borderColor: '#4f46e5',
           backgroundColor: 'rgba(79, 70, 229, 0.1)',
-          tension: 0.3,
+          tension: isSinglePoint ? 0 : 0.3,
           fill: true,
-          pointRadius: 4,
-          pointBackgroundColor: '#4f46e5'
+          pointRadius: isSinglePoint ? 6 : 4,
+          pointHoverRadius: isSinglePoint ? 8 : 6,
+          pointBackgroundColor: '#4f46e5',
+          borderWidth: 2
         },
         {
           label: 'Chi phí',
           data: chiPhiData,
           borderColor: '#ef4444',
           backgroundColor: 'rgba(239, 68, 68, 0.05)',
-          tension: 0.3,
+          tension: isSinglePoint ? 0 : 0.3,
           fill: true,
-          pointRadius: 4,
-          pointBackgroundColor: '#ef4444'
+          pointRadius: isSinglePoint ? 6 : 4,
+          pointHoverRadius: isSinglePoint ? 8 : 6,
+          pointBackgroundColor: '#ef4444',
+          borderWidth: 2
         }
       ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      animation: {
+        duration: 350
+      },
       plugins: {
         legend: {
           position: 'top',

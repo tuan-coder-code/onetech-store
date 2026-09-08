@@ -18,7 +18,7 @@ const {
   CongNo
 } = require('../src/models');
 
-const { HoaDonService, BaoHanhService, ThanhToanService, CongNoService, TonKhoService } = require('../src/services');
+const { HoaDonService, BaoHanhService, ThanhToanService, CongNoService, TonKhoService, KhachHangService } = require('../src/services');
 
 async function runTests() {
   console.log('===============================================================');
@@ -446,6 +446,151 @@ async function runTests() {
     assert(Array.isArray(spRes.sanPhams), 'SanPhamService.getAllSanPhams trả về mảng sanPhams');
     assert(spRes.sanPhams.length > 0, `Tìm thấy ${spRes.sanPhams.length} model sản phẩm`);
     assert(spRes.sanPhams[0].soLuongTon !== undefined, 'Sản phẩm có thuộc tính soLuongTon');
+
+    // Test Soft Delete & ObjectId validation (PR #18)
+    let errIdInvalid = null;
+    try {
+      await SanPhamService.deleteSanPham('invalid_id_123');
+    } catch (e) {
+      errIdInvalid = e;
+    }
+    assert(errIdInvalid !== null && errIdInvalid.statusCode === 400, 'Chặn xóa sản phẩm với ID không hợp lệ (400 Bad Request)');
+
+    const dmFirst = (await DanhMucService.getAllDanhMucs())[0];
+    const spTestXoa = await SanPhamService.createSanPham({
+      tenMay: 'Test Soft Delete PR18',
+      danhMuc: dmFirst._id,
+      hang: 'TestBrand',
+      giaBan: 15000000
+    });
+    const delRes = await SanPhamService.deleteSanPham(spTestXoa._id);
+    assert(delRes.success === true, 'Xóa mềm (Soft delete) sản phẩm thành công');
+
+    const spSauXoa = await SanPham.findById(spTestXoa._id);
+    assert(spSauXoa.status === false, 'Trạng thái sản phẩm được cập nhật thành status: false');
+
+    const spListSauXoa = await SanPhamService.getAllSanPhams({ search: 'Test Soft Delete PR18' });
+    assert(spListSauXoa.sanPhams.length === 0, 'Sản phẩm đã ẩn không xuất hiện trong getAllSanPhams');
+
+    // Dọn dẹp bản ghi test
+    await SanPham.findByIdAndDelete(spTestXoa._id);
+
+    // Test Ràng buộc Giá Gốc & Dung Lượng (PR #19)
+    console.log('\n--- TEST BỔ SUNG PR #19: Ràng buộc Giá Gốc & Giá Bán ---');
+    let errGiaBanBeHonGiaGoc = null;
+    try {
+      await SanPhamService.createSanPham({
+        tenMay: 'Test Invalid Gia PR19',
+        danhMuc: dmFirst._id,
+        hang: 'Apple',
+        giaGoc: 30000000,
+        giaBan: 25000000 // Giá bán < Giá gốc -> Chặn
+      });
+    } catch (e) {
+      errGiaBanBeHonGiaGoc = e;
+    }
+    assert(errGiaBanBeHonGiaGoc !== null && errGiaBanBeHonGiaGoc.statusCode === 400, 'Chặn tạo sản phẩm khi Giá bán <= Giá gốc (400 Bad Request)');
+    assert(errGiaBanBeHonGiaGoc && errGiaBanBeHonGiaGoc.message.includes('Giá bán niêm yết phải lớn hơn Giá gốc'), 'Thông báo lỗi chuẩn xác ràng buộc giá');
+
+    const spHopLePR19 = await SanPhamService.createSanPham({
+      tenMay: 'Test Hop Le PR19',
+      danhMuc: dmFirst._id,
+      hang: 'Apple',
+      giaGoc: 20000000,
+      giaBan: 28000000,
+      dungLuong: '256GB'
+    });
+    assert(spHopLePR19.giaGoc === 20000000, 'Lưu đúng trường giaGoc trong database');
+    assert(spHopLePR19.dungLuong === '256GB', 'Lưu đúng trường dungLuong trong database');
+
+    let errUpdateGia = null;
+    try {
+      await SanPhamService.updateSanPham(spHopLePR19._id, { giaBan: 19000000 }); // nhỏ hơn giaGoc hiện tại (20tr)
+    } catch (e) {
+      errUpdateGia = e;
+    }
+    assert(errUpdateGia !== null && errUpdateGia.statusCode === 400, 'Chặn cập nhật sản phẩm khi giá bán mới <= giá gốc');
+
+    await SanPham.findByIdAndDelete(spHopLePR19._id);
+
+    // -------------------------------------------------------------
+    // TEST BỔ SUNG PR #20 & #21: Chống trùng lặp SĐT/Email/CCCD & POS Guest Checkout
+    // -------------------------------------------------------------
+    console.log('\n--- TEST BỔ SUNG PR #20 & #21: Chống trùng lặp & Bán hàng Khách mới ---');
+    
+    // 1. Chống trùng SĐT Khách hàng
+    const testPhone = '0988776655';
+    const khFirst = await KhachHangService.createKhachHang({
+      hoTen: 'Khach Hang Test Unique',
+      sdt: testPhone,
+      email: 'unique1@test.com',
+      cccd: '001099000111'
+    });
+
+    let errDupPhone = null;
+    try {
+      await KhachHangService.createKhachHang({
+        hoTen: 'Khach Hang Duplicate Phone',
+        sdt: testPhone, // SĐT đã tồn tại
+        email: 'unique2@test.com'
+      });
+    } catch (e) {
+      errDupPhone = e;
+    }
+    assert(errDupPhone !== null && errDupPhone.statusCode === 409, 'Chặn tạo khách hàng trùng SĐT (409 Conflict)');
+
+    // 2. Chống trùng Email Khách hàng
+    let errDupEmail = null;
+    try {
+      await KhachHangService.createKhachHang({
+        hoTen: 'Khach Hang Duplicate Email',
+        sdt: '0911223344',
+        email: 'unique1@test.com' // Email đã tồn tại
+      });
+    } catch (e) {
+      errDupEmail = e;
+    }
+    assert(errDupEmail !== null && errDupEmail.statusCode === 409, 'Chặn tạo khách hàng trùng Email (409 Conflict)');
+
+    // 3. Chống trùng CCCD Khách hàng
+    let errDupCccd = null;
+    try {
+      await KhachHangService.createKhachHang({
+        hoTen: 'Khach Hang Duplicate CCCD',
+        sdt: '0922334455',
+        cccd: '001099000111' // CCCD đã tồn tại
+      });
+    } catch (e) {
+      errDupCccd = e;
+    }
+    assert(errDupCccd !== null && errDupCccd.statusCode === 409, 'Chặn tạo khách hàng trùng CCCD (409 Conflict)');
+
+    // 4. POS Bán Hàng trực tiếp cho Khách mới (Guest Checkout)
+    const guestPhone = '0977889911';
+    const guestImei = 'TUAN_GUEST_' + Date.now().toString().slice(-6);
+    await MayImei.create({
+      imei: guestImei,
+      sanPham: spIphone._id,
+      giaNhap: 26000000,
+      trangThai: 'Con hang'
+    });
+
+    const guestOrderRes = await HoaDonService.taoHoaDonBanHang({
+      guestName: 'Nguyễn Văn Khách Mới',
+      guestPhone: guestPhone,
+      guestCccd: '036099887766',
+      danhSachIMEI: [guestImei],
+      danhSachPhuKien: []
+    }, nv);
+
+    assert(guestOrderRes.hoaDon !== undefined, 'Tạo hóa đơn POS khách mới thành công');
+    const createdGuest = await KhachHang.findOne({ sdt: guestPhone }).lean();
+    assert(createdGuest !== null, 'Hệ thống tự động sinh tài khoản Khách Hàng mới cho khách vãng lai');
+    assert(createdGuest && createdGuest.cccd === '036099887766', 'Lưu chính xác CCCD khách mới');
+
+    // Dọn dẹp bản ghi test
+    await KhachHang.findByIdAndDelete(khFirst._id);
+    await KhachHang.findByIdAndDelete(createdGuest._id);
 
     // 4. Máy IMEI
     const imeiRes = await MayImeiService.getAllImeis();

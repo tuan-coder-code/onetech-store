@@ -60,11 +60,17 @@ Hệ thống được tổ chức theo mô hình **Layered MVC kết hợp OOP S
 * **Giao diện Hiện đại & Hoạt ảnh mượt mà (`src/public/css/style.css`):**
   - Tích hợp bộ Keyframe Animations đồng bộ (`fadeInUp`, `slideDown`, `cardIn`, `logoSpin`, `bgFloat`...).
   - Thiết kế card phong cách glassmorphism, shadow đổ bóng tự nhiên, viền tinh tế và màu sắc gradient hiện đại.
-* **Hệ thống Điều hướng Thông minh (`src/public/js/layout.js`):**
-  - **Sidebar Thu gọn / Mở rộng (Collapsible Sidebar):** Hỗ trợ chuyển đổi trạng thái trên Desktop, ghi nhớ trạng thái người dùng qua `localStorage` (`sidebarCollapsed`).
+* **Hệ thống Điều hướng Thông minh (`src/public/js/layout.js` & `src/public/css/style.css`):**
+  - **Sidebar Cố định & Thu gọn / Mở rộng (Fixed Collapsible Sidebar):** Thiết lập `position: fixed` bám trọn viền trái màn hình với thanh cuộn ẩn siêu gọn (`scrollbar-width: none`), tự động điều chỉnh `margin-left` co giãn (260px khi mở / 68px khi thu gọn), ghi nhớ trạng thái qua `localStorage` (`sidebarCollapsed`) và responsive mượt mà trên mobile.
   - **Mobile Responsive Drawer:** Hỗ trợ menu trượt kèm lớp nền mờ `sidebar-overlay`, tự động đóng sidebar khi người dùng chọn chuyển trang trên thiết bị di động (< 992px).
   - **Top Navbar Đa năng:** Tích hợp đồng hồ thời gian thực (Live ticking clock), Avatar Initials theo họ tên và hiển thị Badge vai trò sắc nét.
   - **Universal Custom Dropdown Engine (`enhanceSelect()`):** Tự động chuyển đổi toàn bộ `<select>` HTML thành Custom Dropdown hiện đại, tích hợp icon ngữ nghĩa (danh mục, hãng, kho, vai trò...), ô tìm kiếm tùy chọn realtime và animation mượt mà.
+* **Tính năng Nhập hàng loạt IMEI & Ràng buộc Giá Gốc (`src/public/pages/nhap-kho/`, `src/services/SanPhamService.js`):**
+  - **Thêm trường Giá Gốc (`giaGoc`) & Dung Lượng (`dungLuong`):** Model `SanPham` được bổ sung để quản lý giá nhập buôn dự kiến và phiên bản bộ nhớ máy.
+  - **Ràng buộc nghiệp vụ Giá bán:** `SanPhamService` bắt buộc `giaBan > giaGoc` khi tạo mới và cập nhật, chống rủi ro bán lỗ.
+  - **Tự động điền Giá gốc & Dung lượng:** Khi lập phiếu nhập kho, việc chọn model sẽ tự động điền đơn giá và dung lượng.
+  - **Nhập Hàng Loạt IMEI (Bulk Import Modal):** Cho phép thủ kho quét mã vạch hoặc dán danh sách hàng chục IMEI cùng lúc để sinh các dòng nhập kho tự động.
+* **Modal Xác nhận Xóa & Soft Delete Model Sản Phẩm (`src/public/pages/san-pham/`):** Tích hợp Modal Bootstrap `modalXacNhanXoa` phong cách hiện đại thay thế confirm thô sơ, hiệu ứng fade-out dòng tr sau khi ẩn và chuyển sang cơ chế Soft Delete (`status: false`) để bảo toàn lịch sử hóa đơn/IMEI.
 * **Màn hình Đăng nhập Trực quan (`src/public/pages/login.html`):**
   - Hiệu ứng floating background orbs, logo chuyển động xoay tròn nhẹ khi tương tác, form focus nổi bật.
   - Hàng badge tài khoản demo tương tác cao giúp đăng nhập nhanh 1-click cho 6 vai trò.
@@ -75,6 +81,14 @@ Hệ thống được tổ chức theo mô hình **Layered MVC kết hợp OOP S
   - 4 thẻ thống kê tổng quan cơ cấu hàng hóa (Tổng DM, Model Điện thoại, Tablet, Phụ kiện).
   - Bố cục 2 cột cân đối: Danh sách phân loại (kèm icon theo tên danh mục) và Form thêm nhanh (Quick Add).
   - Tìm kiếm nhanh realtime có Debounce chống giật lag giao diện.
+* **Quản lý CCCD & Chống trùng lặp đa trường (`src/services/`, `src/models/`):**
+  - **Bổ sung CCCD:** Schema `KhachHang` và `NhanVien` được chuẩn hóa trường căn cước công dân (12 chữ số).
+  - **Chống trùng lặp dữ liệu toàn diện:** Ngăn chặn đăng ký trùng SĐT, Email, CCCD cho Khách hàng và Nhân viên; chặn trùng Tên và SĐT cho Nhà cung cấp với mã lỗi chuẩn `409 Conflict`.
+* **Bán hàng POS Khách mới vãng lai (Guest Checkout - `src/public/pages/ban-hang/`):**
+  - Hỗ trợ chuyển đổi linh hoạt giữa "Khách mới" và "Thành viên".
+  - Thu ngân có thể nhập trực tiếp Tên, SĐT, CCCD khách vãng lai ngay trên quầy thu ngân; `HoaDonService` tự động sinh tài khoản khách hàng mới vào hệ thống.
+* **Bộ lọc Ngày Doanh thu trên Dashboard (`src/public/pages/index.html`, `src/public/js/dashboard.js`):**
+  - Tích hợp bộ lọc khoảng ngày (Từ ngày - Đến ngày) kết hợp chuyển đổi phân nhóm Ngày/Tuần/Tháng/Năm trực quan trên Chart.js.
 * **Phân quyền Giao diện Đa tầng & Bảo vệ Điều hướng (Client-side RBAC & Route Guarding):**
   - **Lọc Sidebar thông minh theo 6 vai trò:** Tự động ẩn các menu và danh mục nhóm (`nav-category`) không thuộc quyền hạn để loại bỏ tình trạng rối mắt.
   - **Tùy biến Quick Actions trên Dashboard:** Tự động hiển thị các nút thao tác đầu trang phù hợp với vai trò (Bán hàng, Thủ kho, Thu ngân, Kỹ thuật, Kế toán, Quản lý).
@@ -96,8 +110,8 @@ onetech/
 ├── one_tech_store_erd.dbml              # Sơ đồ quan hệ thực thể ERD
 ├── README.md                            # Hướng dẫn cài đặt & tài khoản demo
 ├── PROJECT_WALKTHROUGH.md               # Bản Walkthrough kỹ thuật (File này)
-├── tests/                               # Bộ kiểm thử tự động (18 Test Suites, 682 Assertions)
-│   ├── run_all_tests.js                 # Master Test Runner chạy toàn bộ 18 suites
+├── tests/                               # Bộ kiểm thử tự động (20 Test Suites, 796 Assertions)
+│   ├── run_all_tests.js                 # Master Test Runner chạy toàn bộ 20 suites
 │   ├── test_tuan_module.js              # Kiểm thử 60 test cases luồng Bán hàng POS, IMEI, Bảo hành
 │   ├── test_tuan_tuan5_6_e2e.js         # Kiểm thử 33 test cases Luồng E2E tích hợp Bán hàng POS, Cọc, Bảo hành, KPI (Tuần 5-6)
 │   ├── test_viet_module.js              # Kiểm thử 32 test cases Đặt hàng trước, Cọc & Hoàn cọc (Tuần 3)

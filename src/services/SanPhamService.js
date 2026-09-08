@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const BaseService = require('./BaseService');
 const { SanPham, DanhMuc, MayImei } = require('../models');
 
@@ -21,9 +22,9 @@ class SanPhamService extends BaseService {
     }
 
     const [sanPhams, danhMucs, allHangs, counts, totalCounts] = await Promise.all([
-      SanPham.find(filter).populate('danhMuc').sort({ createdAt: -1 }),
-      DanhMuc.find().sort({ tenDanhMuc: 1 }),
-      SanPham.distinct('hang'),
+      SanPham.find(filter).populate('danhMuc').sort({ createdAt: -1 }).lean(),
+      DanhMuc.find().sort({ tenDanhMuc: 1 }).lean(),
+      SanPham.distinct('hang', filter),
       MayImei.aggregate([
         { $match: { trangThai: 'Con hang' } },
         { $group: { _id: '$sanPham', soLuongTon: { $sum: 1 } } }
@@ -55,10 +56,14 @@ class SanPhamService extends BaseService {
   }
 
   async getSanPhamDetail(id) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw this.createError('ID sản phẩm không hợp lệ', 400);
+    }
+
     const [sanPham, danhMucs, imeis] = await Promise.all([
-      SanPham.findById(id).populate('danhMuc'),
-      DanhMuc.find().sort({ tenDanhMuc: 1 }),
-      MayImei.find({ sanPham: id }).sort({ createdAt: -1 })
+      SanPham.findById(id).populate('danhMuc').lean(),
+      DanhMuc.find().sort({ tenDanhMuc: 1 }).lean(),
+      MayImei.find({ sanPham: id }).sort({ createdAt: -1 }).lean()
     ]);
 
     if (!sanPham) {
@@ -69,16 +74,23 @@ class SanPhamService extends BaseService {
   }
 
   async createSanPham(payload = {}) {
-    const { tenMay, danhMuc, hang, giaBan, soThangBH, hinhAnh, moTa } = payload;
+    const { tenMay, danhMuc, hang, giaBan, giaGoc, dungLuong, soThangBH, hinhAnh, moTa } = payload;
     if (!tenMay || !danhMuc || giaBan === undefined) {
       throw this.createError('Vui lòng điền đầy đủ Tên máy, Danh mục và Giá bán', 400);
+    }
+    const giaB = Number(giaBan);
+    const giaG = giaGoc !== undefined ? Number(giaGoc) : 0;
+    if (giaB <= giaG) {
+      throw this.createError('Giá bán niêm yết phải lớn hơn Giá gốc', 400);
     }
 
     return await SanPham.create({
       tenMay: tenMay.trim(),
       danhMuc,
       hang: hang ? hang.trim() : '',
-      giaBan: Number(giaBan),
+      giaBan: giaB,
+      giaGoc: giaG,
+      dungLuong: dungLuong ? dungLuong.trim() : '',
       soThangBH: soThangBH !== undefined ? Number(soThangBH) : 12,
       hinhAnh: hinhAnh ? hinhAnh.trim() : '',
       moTa: moTa ? moTa.trim() : ''
@@ -86,18 +98,35 @@ class SanPhamService extends BaseService {
   }
 
   async updateSanPham(id, payload = {}) {
-    const { tenMay, danhMuc, hang, giaBan, soThangBH, hinhAnh, moTa } = payload;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw this.createError('ID sản phẩm không hợp lệ', 400);
+    }
+
+    const { tenMay, danhMuc, hang, giaBan, giaGoc, dungLuong, soThangBH, hinhAnh, moTa } = payload;
+
+    // Nếu có thay đổi giá, kiểm tra ràng buộc giá
+    if (giaBan !== undefined || giaGoc !== undefined) {
+      const sp = await SanPham.findById(id).lean();
+      if (!sp) throw this.createError('Sản phẩm không tồn tại', 404);
+      const newGiaBan = giaBan !== undefined ? Number(giaBan) : sp.giaBan;
+      const newGiaGoc = giaGoc !== undefined ? Number(giaGoc) : (sp.giaGoc || 0);
+      if (newGiaBan <= newGiaGoc) {
+        throw this.createError('Giá bán niêm yết phải lớn hơn Giá gốc', 400);
+      }
+    }
 
     const updated = await SanPham.findByIdAndUpdate(
       id,
       {
         tenMay: tenMay ? tenMay.trim() : undefined,
         danhMuc,
-        hang: hang ? hang.trim() : undefined,
+        hang: hang !== undefined ? hang.trim() : undefined,
         giaBan: giaBan !== undefined ? Number(giaBan) : undefined,
+        giaGoc: giaGoc !== undefined ? Number(giaGoc) : undefined,
+        dungLuong: dungLuong !== undefined ? dungLuong.trim() : undefined,
         soThangBH: soThangBH !== undefined ? Number(soThangBH) : undefined,
-        hinhAnh: hinhAnh ? hinhAnh.trim() : undefined,
-        moTa: moTa ? moTa.trim() : undefined
+        hinhAnh: hinhAnh !== undefined ? hinhAnh.trim() : undefined,
+        moTa: moTa !== undefined ? moTa.trim() : undefined
       },
       { new: true, runValidators: true }
     );
@@ -110,6 +139,10 @@ class SanPhamService extends BaseService {
   }
 
   async deleteSanPham(id) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw this.createError('ID sản phẩm không hợp lệ', 400);
+    }
+
     const updated = await SanPham.findByIdAndUpdate(
       id,
       { status: false },
