@@ -6,7 +6,6 @@ const nhanVienSchema = new mongoose.Schema({
   sdt: { type: String, required: true, trim: true },
   cccd: { type: String, trim: true },
   email: { type: String, trim: true },
-  cccd: { type: String, trim: true },
   diaChi: { type: String, trim: true },
   vaiTro: {
     type: String,
