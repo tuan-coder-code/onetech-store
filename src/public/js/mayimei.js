@@ -115,15 +115,15 @@ async function loadMayImeiList() {
           <td class="fw-semibold">${formatCurrency(item.giaNhap)}</td>
           <td><span class="badge ${badgeClass}">${badgeText}</span></td>
           <td>${formatDate(item.ngayNhap || item.createdAt)}</td>
-          <td class="text-end">
-            <div class="btn-group btn-group-sm">
+          <td class="text-end pe-3">
+            <div class="d-inline-flex justify-content-end align-items-center" style="gap: 6px;">
               ${isTechOrManager ? `
-                <a href="/may-imei/form.html?imei=${item.imei}" class="btn btn-outline-primary" title="Chỉnh sửa trạng thái">
+                <a href="/may-imei/form.html?imei=${item.imei}" class="btn-action btn-action-edit" title="Chỉnh sửa trạng thái">
                   <i class="bi bi-pencil"></i>
                 </a>
               ` : ''}
               ${isManager ? `
-                <button type="button" class="btn btn-outline-danger" title="Xóa" ${item.trangThai === 'Da ban' ? 'disabled' : ''} onclick="deleteImei('${item.imei}')">
+                <button type="button" class="btn-action btn-action-cancel" title="Xóa" ${item.trangThai === 'Da ban' ? 'disabled' : ''} onclick="deleteImei('${item.imei}')">
                   <i class="bi bi-trash"></i>
                 </button>
               ` : ''}

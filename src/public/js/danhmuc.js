@@ -172,15 +172,15 @@ function renderDanhMucTable(keyword = '') {
             <i class="bi bi-headphones me-1"></i> ${dm.countPK || 0} Phụ kiện
           </a>
         </td>
-        <td class="text-end">
-          <div class="btn-group btn-group-sm">
+        <td class="text-end pe-3">
+          <div class="d-inline-flex justify-content-end align-items-center" style="gap: 6px;">
             ${isManagerOrStorekeeper ? `
-              <button type="button" class="btn btn-outline-primary" title="Sửa tên danh mục" onclick="openEditModal('${dm._id}', '${escapeHtml(dm.tenDanhMuc)}')">
+              <button type="button" class="btn-action btn-action-edit" title="Sửa tên danh mục" onclick="openEditModal('${dm._id}', '${escapeHtml(dm.tenDanhMuc)}')">
                 <i class="bi bi-pencil"></i>
               </button>
             ` : ''}
             ${isManager ? `
-              <button type="button" class="btn btn-outline-danger" title="${(dm.countSP > 0 || dm.countPK > 0) ? 'Không thể xóa danh mục đang có sản phẩm' : 'Xóa danh mục'}" ${(dm.countSP > 0 || dm.countPK > 0) ? 'disabled' : ''} onclick="deleteDanhMuc('${dm._id}', '${escapeHtml(dm.tenDanhMuc)}')">
+              <button type="button" class="btn-action btn-action-cancel" title="${(dm.countSP > 0 || dm.countPK > 0) ? 'Không thể xóa danh mục đang có sản phẩm' : 'Xóa danh mục'}" ${(dm.countSP > 0 || dm.countPK > 0) ? 'disabled style="opacity: 0.45; cursor: not-allowed;"' : ''} onclick="deleteDanhMuc('${dm._id}', '${escapeHtml(dm.tenDanhMuc)}')">
                 <i class="bi bi-trash"></i>
               </button>
             ` : ''}

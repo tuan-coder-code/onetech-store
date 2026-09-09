@@ -26,17 +26,81 @@
     }
     .cart-table th, .cart-table td {
       vertical-align: middle;
+      font-size: 0.85rem;
+      padding: 0.35rem 0.25rem;
     }
     .pos-shortcut-btn {
+      display: inline-flex;
+      align-items: center;
       transition: all 0.15s ease-in-out;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
+      font-weight: 500;
       cursor: pointer;
+      background: #ffffff;
+      border: 1px solid #cbd5e1 !important;
+      border-radius: 6px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+      color: #334155;
+      padding: 3px 8px !important;
+      line-height: 1.35;
+      white-space: nowrap;
     }
     .pos-shortcut-btn:hover {
-      background-color: #e9ecef;
+      background-color: #f1f5f9;
       border-color: #0d6efd !important;
       color: #0d6efd !important;
       transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(13,110,253,0.12);
+    }
+    .pos-shortcut-btn .badge-key {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background-color: #0d6efd;
+      color: #ffffff;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.72rem;
+      margin-right: 5px;
+      display: inline-block;
+      line-height: 1.25;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .pos-shortcut-btn .badge-key-danger {
+      background-color: #dc3545;
+    }
+    .pos-shortcut-btn .badge-key-secondary {
+      background-color: #64748b;
+    }
+    #pills-tab .nav-link {
+      border: 1.5px solid #cbd5e1;
+      background-color: #ffffff;
+      color: #334155;
+      border-radius: 8px;
+      padding: 8px 16px;
+      transition: all 0.2s ease;
+    }
+    #pills-tab .nav-link:hover {
+      border-color: #0d6efd;
+      color: #0d6efd;
+      background-color: #f8faff;
+    }
+    #pills-tab .nav-link.active {
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(13,110,253,0.25);
+    }
+    @media (min-width: 992px) {
+      .pos-col-left {
+        flex: 0 0 60%;
+        max-width: 60%;
+        width: 60%;
+      }
+      .pos-col-right {
+        flex: 0 0 40%;
+        max-width: 40%;
+        width: 40%;
+      }
     }
   </style>
 </head>
@@ -54,47 +118,58 @@
     <!-- Page Body -->
     <main class="page-container">
       <!-- Shortcut Banner -->
-      <div class="d-flex flex-wrap gap-2 mb-3 align-items-center bg-white p-2 rounded-3 border small text-muted shadow-sm">
-        <span class="fw-bold text-dark"><i class="bi bi-keyboard me-1 text-primary"></i>Phím tắt POS:</span>
-        <button type="button" class="btn btn-sm btn-light border font-monospace py-0 px-2 pos-shortcut-btn" onclick="shortcutAction('F1')" title="F1: Quét / Tìm IMEI">
-          <span class="fw-bold text-primary">F1</span>: Quét IMEI
-        </button>
-        <button type="button" class="btn btn-sm btn-light border font-monospace py-0 px-2 pos-shortcut-btn" onclick="shortcutAction('F2')" title="F2: Chọn Khách hàng">
-          <span class="fw-bold text-primary">F2</span>: Chọn KH
-        </button>
-        <button type="button" class="btn btn-sm btn-light border font-monospace py-0 px-2 pos-shortcut-btn" onclick="shortcutAction('F4')" title="F4: Hoàn tất đơn hàng">
-          <span class="fw-bold text-primary">F4</span>: Hoàn tất đơn
-        </button>
-        <button type="button" class="btn btn-sm btn-light border font-monospace py-0 px-2 pos-shortcut-btn" onclick="shortcutAction('F7')" title="F7: Mở Đơn đặt trước cấn trừ cọc">
-          <span class="fw-bold text-primary">F7</span>: Đơn cọc
-        </button>
-        <button type="button" class="btn btn-sm btn-light border font-monospace py-0 px-2 pos-shortcut-btn" onclick="shortcutAction('F8')" title="F8: Xóa sạch giỏ hàng">
-          <span class="fw-bold text-primary">F8</span>: Xóa giỏ
-        </button>
-        <button type="button" class="btn btn-sm btn-light border font-monospace py-0 px-2 pos-shortcut-btn" onclick="shortcutAction('F9')" title="F9: In hóa đơn">
-          <span class="fw-bold text-primary">F9</span>: In HĐ
-        </button>
-        <button type="button" class="btn btn-sm btn-light border font-monospace py-0 px-2 pos-shortcut-btn" onclick="shortcutAction('Escape')" title="Esc: Đóng modal">
-          <span class="fw-bold text-primary">Esc</span>: Đóng
-        </button>
-        <span class="badge bg-primary-subtle text-primary border font-monospace" title="Quét Barcode hoặc nhập IMEI rồi bấm Enter"><i class="bi bi-upc-scan me-1"></i>Enter: Thêm máy quét</span>
-        <span class="ms-auto badge bg-success-subtle text-success border"><i class="bi bi-volume-up me-1"></i>Âm thanh POS: BẬT</span>
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 bg-white py-2 px-3 rounded-3 border small shadow-sm">
+        <!-- Nhóm phím tắt bên trái -->
+        <div class="d-flex flex-wrap align-items-center" style="gap: 6px;">
+          <span class="fw-bold text-dark me-1"><i class="bi bi-keyboard text-primary me-1"></i>Phím tắt POS:</span>
+          <button type="button" class="btn btn-sm pos-shortcut-btn" onclick="shortcutAction('F1')" title="F1: Quét / Tìm IMEI">
+            <span class="badge-key">F1</span>Quét IMEI
+          </button>
+          <button type="button" class="btn btn-sm pos-shortcut-btn" onclick="shortcutAction('F2')" title="F2: Chọn Khách hàng">
+            <span class="badge-key">F2</span>Chọn KH
+          </button>
+          <button type="button" class="btn btn-sm pos-shortcut-btn" onclick="shortcutAction('F4')" title="F4: Hoàn tất đơn hàng">
+            <span class="badge-key">F4</span>Hoàn tất đơn
+          </button>
+          <button type="button" class="btn btn-sm pos-shortcut-btn" onclick="shortcutAction('F7')" title="F7: Mở Đơn đặt trước cấn trừ cọc">
+            <span class="badge-key">F7</span>Đơn cọc
+          </button>
+          <button type="button" class="btn btn-sm pos-shortcut-btn" onclick="shortcutAction('F8')" title="F8: Xóa sạch giỏ hàng">
+            <span class="badge-key badge-key-danger">F8</span>Xóa giỏ
+          </button>
+          <button type="button" class="btn btn-sm pos-shortcut-btn" onclick="shortcutAction('F9')" title="F9: In hóa đơn">
+            <span class="badge-key">F9</span>In HĐ
+          </button>
+          <button type="button" class="btn btn-sm pos-shortcut-btn" onclick="shortcutAction('Escape')" title="Esc: Đóng modal">
+            <span class="badge-key badge-key-secondary">Esc</span>Đóng
+          </button>
+        </div>
+
+        <!-- Nhóm trạng thái bên phải -->
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-primary-subtle text-primary border py-1.5 px-2" title="Quét Barcode hoặc nhập IMEI rồi bấm Enter">
+            <i class="bi bi-upc-scan me-1"></i>Enter: Thêm máy quét
+          </span>
+          <span class="badge bg-success-subtle text-success border py-1.5 px-2">
+            <i class="bi bi-volume-up me-1"></i>Âm thanh POS: BẬT
+          </span>
+        </div>
       </div>
 
       <!-- Nav Tabs -->
-      <ul class="nav nav-pills mb-4" id="pills-tab" role="tablist">
+      <ul class="nav nav-pills gap-2 mb-4" id="pills-tab" role="tablist">
         <li class="nav-item" role="presentation">
-          <button class="nav-link active fw-semibold" id="tab-pos-tab" data-bs-toggle="pill" data-bs-target="#tab-pos" type="button" role="tab">
+          <button class="nav-link active fw-semibold shadow-sm" id="tab-pos-tab" data-bs-toggle="pill" data-bs-target="#tab-pos" type="button" role="tab">
             <i class="bi bi-cart-plus me-1"></i> Bán hàng POS (Theo IMEI)
           </button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link fw-semibold" id="tab-invoices-tab" data-bs-toggle="pill" data-bs-target="#tab-invoices" type="button" role="tab">
+          <button class="nav-link fw-semibold shadow-sm" id="tab-invoices-tab" data-bs-toggle="pill" data-bs-target="#tab-invoices" type="button" role="tab">
             <i class="bi bi-receipt me-1"></i> Danh sách Hóa đơn & Xuất kho
           </button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link fw-semibold" id="tab-reports-tab" data-bs-toggle="pill" data-bs-target="#tab-reports" type="button" role="tab">
+          <button class="nav-link fw-semibold shadow-sm" id="tab-reports-tab" data-bs-toggle="pill" data-bs-target="#tab-reports" type="button" role="tab">
             <i class="bi bi-graph-up-arrow me-1"></i> Doanh số & KPI Nhân viên
           </button>
         </li>
@@ -104,13 +179,13 @@
         <!-- TAB 1: BÁN HÀNG POS -->
         <div class="tab-pane fade show active" id="tab-pos" role="tabpanel">
           <div class="row g-3">
-            <!-- Cột trái: Chọn máy IMEI & Phụ kiện -->
-            <div class="col-lg-7">
-              <div class="card-custom p-3 mb-3">
-                <h6 class="fw-bold mb-3"><i class="bi bi-upc-scan text-primary me-2"></i>Chọn Máy IMEI Còn Hàng</h6>
-                <div class="row g-2 mb-3">
+            <!-- Cột trái: Chọn máy IMEI & Phụ kiện (60%) -->
+            <div class="col-12 pos-col-left d-flex flex-column gap-3">
+              <div class="card-custom p-3 flex-grow-1">
+                <h6 class="fw-bold mb-2"><i class="bi bi-upc-scan text-primary me-2"></i>Chọn Máy IMEI Còn Hàng</h6>
+                <div class="row g-2 mb-2">
                   <div class="col-md-7">
-                    <div class="input-group">
+                    <div class="input-group input-group-sm">
                       <span class="input-group-text"><i class="bi bi-search"></i></span>
                       <input type="text" id="searchImeiInput" class="form-control font-monospace" placeholder="Nhập hoặc quét số IMEI...">
                       <button class="btn btn-outline-primary" type="button" id="btnScanCamera" onclick="openImeiCameraScanner()" title="Bật Camera điện thoại hoặc webcam để quét mã vạch">
@@ -119,39 +194,39 @@
                     </div>
                   </div>
                   <div class="col-md-5">
-                    <select id="filterPosSanPham" class="form-select">
+                    <select id="filterPosSanPham" class="form-select form-select-sm">
                       <option value="">-- Lọc theo Model máy --</option>
                     </select>
                   </div>
                 </div>
 
-                <div id="availableImeiList" class="row g-2 overflow-auto" style="max-height: 250px;">
+                <div id="availableImeiList" class="row g-2 overflow-auto" style="max-height: 310px;">
                   <div class="text-center py-4 text-muted small">Đang tải danh sách máy còn hàng...</div>
                 </div>
               </div>
 
               <div class="card-custom p-3">
-                <h6 class="fw-bold mb-3"><i class="bi bi-headphones text-primary me-2"></i>Chọn Phụ Kiện Kèm Theo</h6>
-                <div id="availablePhuKienList" class="row g-2 overflow-auto" style="max-height: 220px;">
+                <h6 class="fw-bold mb-2"><i class="bi bi-headphones text-primary me-2"></i>Chọn Phụ Kiện Kèm Theo</h6>
+                <div id="availablePhuKienList" class="row g-2 overflow-auto" style="max-height: 190px;">
                   <div class="text-center py-4 text-muted small">Đang tải danh sách phụ kiện...</div>
                 </div>
               </div>
             </div>
 
-            <!-- Cột phải: Giỏ hàng & Thanh toán -->
-            <div class="col-lg-5">
-              <div class="card-custom p-3 sticky-top" style="top: 80px;">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+            <!-- Cột phải: Giỏ hàng & Thanh toán (40%) -->
+            <div class="col-12 pos-col-right">
+              <div class="card-custom p-3 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-2">
                   <h6 class="fw-bold mb-0"><i class="bi bi-cart3 text-primary me-2"></i>Giỏ Hàng</h6>
-                  <button id="btnClearCart" class="btn btn-sm btn-outline-secondary">
+                  <button id="btnClearCart" class="btn btn-sm btn-danger text-white fw-semibold shadow-sm">
                     <i class="bi bi-trash me-1"></i> Xóa giỏ
                   </button>
                 </div>
 
                 <!-- Bảng danh sách hàng trong giỏ -->
-                <div class="table-responsive mb-3" style="max-height: 250px; overflow-y: auto;">
+                <div class="table-responsive mb-2 border rounded" style="max-height: 160px; overflow-y: auto;">
                   <table class="table table-sm cart-table mb-0">
-                    <thead class="table-light">
+                    <thead class="table-light sticky-top">
                       <tr>
                         <th>Sản phẩm / IMEI</th>
                         <th class="text-center" style="width: 70px;">SL</th>
@@ -161,14 +236,14 @@
                     </thead>
                     <tbody id="cartTableBody">
                       <tr>
-                        <td colspan="4" class="text-center text-muted py-4 small">Chưa có sản phẩm nào được chọn</td>
+                        <td colspan="4" class="text-center text-muted py-3 small">Chưa có sản phẩm nào được chọn</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
 
                 <!-- Cấn trừ Đơn đặt trước (Pre-order) -->
-                <div class="card p-2 mb-3 border-primary-subtle bg-primary-subtle bg-opacity-25 rounded-3">
+                <div class="card p-2 mb-2 border-primary-subtle bg-primary-subtle bg-opacity-25 rounded-3">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <span class="small fw-bold text-primary"><i class="bi bi-bookmark-check me-1"></i> Đơn Đặt Trước (Pre-order)</span>
                     <div class="d-flex gap-1">
@@ -186,8 +261,8 @@
                 </div>
 
                 <!-- Khách hàng & Hình thức thanh toán -->
-                <div class="mb-3">
-                  <div class="d-flex justify-content-between mb-2">
+                <div class="mb-2">
+                  <div class="d-flex justify-content-between mb-1">
                     <label class="form-label small fw-semibold mb-0">Khách hàng <span class="text-danger">*</span></label>
                     <div>
                       <div class="form-check form-check-inline mb-0">
@@ -215,7 +290,7 @@
                   </div>
 
                   <!-- Chế độ Thành viên -->
-                  <div id="memberCustomerSelect" class="input-group d-none">
+                  <div id="memberCustomerSelect" class="input-group input-group-sm d-none">
                     <select id="selectKhachHang" class="form-select">
                       <option value="">-- Chọn Khách hàng --</option>
                     </select>
@@ -225,9 +300,9 @@
                   </div>
                 </div>
 
-                <div class="row g-2 mb-3">
+                <div class="row g-2 mb-2">
                   <div class="col-6">
-                    <label class="form-label small fw-semibold">Hình thức thanh toán</label>
+                    <label class="form-label small fw-semibold mb-1">Hình thức thanh toán</label>
                     <select id="selectPaymentMethod" class="form-select form-select-sm">
                       <option value="Da thanh toan">Tiền mặt / CK (Đã thanh toán)</option>
                       <option value="Cong no">Ghi công nợ</option>
@@ -235,14 +310,14 @@
                     </select>
                   </div>
                   <div class="col-6">
-                    <label class="form-label small fw-semibold">Ghi chú</label>
+                    <label class="form-label small fw-semibold mb-1">Ghi chú</label>
                     <input type="text" id="inputGhiChu" class="form-control form-control-sm" placeholder="Ghi chú đơn...">
                   </div>
                 </div>
 
                 <!-- Giảm giá / Chiết khấu -->
-                <div class="mb-3">
-                  <label class="form-label small fw-semibold d-flex justify-content-between">
+                <div class="mb-2">
+                  <label class="form-label small fw-semibold mb-1 d-flex justify-content-between">
                     <span><i class="bi bi-tag-fill text-warning me-1"></i>Chiết khấu / Giảm giá (VNĐ)</span>
                     <span class="text-muted" style="font-size: 0.75rem;">Nhập 0 nếu không giảm</span>
                   </label>
@@ -252,34 +327,36 @@
                   </div>
                 </div>
 
-                <!-- Tổng tiền & Cấn trừ cọc -->
-                <div class="bg-light p-3 rounded mb-3">
-                  <div class="d-flex justify-content-between mb-1">
-                    <span class="text-muted small">Tổng tiền máy:</span>
-                    <span id="totalMachinePrice" class="fw-semibold">0 đ</span>
+                <!-- Footer: Tổng tiền & Nút xác nhận thanh toán -->
+                <div class="mt-auto pt-1">
+                  <div class="bg-light p-2 px-3 rounded mb-2 border">
+                    <div class="d-flex justify-content-between mb-1">
+                      <span class="text-muted small">Tổng tiền máy:</span>
+                      <span id="totalMachinePrice" class="fw-semibold small">0 đ</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                      <span class="text-muted small">Tổng tiền phụ kiện:</span>
+                      <span id="totalAccessoryPrice" class="fw-semibold small">0 đ</span>
+                    </div>
+                    <div id="discountDeductionRow" class="d-flex justify-content-between mb-1 text-warning d-none">
+                      <span class="small font-monospace"><i class="bi bi-tag me-1"></i>Chiết khấu giảm giá:</span>
+                      <span id="discountDeductionPrice" class="fw-bold">-0 đ</span>
+                    </div>
+                    <div id="depositDeductionRow" class="d-flex justify-content-between mb-1 text-success d-none">
+                      <span class="small font-monospace"><i class="bi bi-dash-circle me-1"></i>Đã cấn trừ tiền cọc:</span>
+                      <span id="depositDeductionPrice" class="fw-bold">-0 đ</span>
+                    </div>
+                    <hr class="my-1">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <span class="fw-bold">THỰC THU:</span>
+                      <span id="totalGrandPrice" class="fs-5 fw-bold text-danger">0 đ</span>
+                    </div>
                   </div>
-                  <div class="d-flex justify-content-between mb-1">
-                    <span class="text-muted small">Tổng tiền phụ kiện:</span>
-                    <span id="totalAccessoryPrice" class="fw-semibold">0 đ</span>
-                  </div>
-                  <div id="discountDeductionRow" class="d-flex justify-content-between mb-1 text-warning d-none">
-                    <span class="small font-monospace"><i class="bi bi-tag me-1"></i>Chiết khấu giảm giá:</span>
-                    <span id="discountDeductionPrice" class="fw-bold">-0 đ</span>
-                  </div>
-                  <div id="depositDeductionRow" class="d-flex justify-content-between mb-1 text-success d-none">
-                    <span class="small font-monospace"><i class="bi bi-dash-circle me-1"></i>Đã cấn trừ tiền cọc:</span>
-                    <span id="depositDeductionPrice" class="fw-bold">-0 đ</span>
-                  </div>
-                  <hr class="my-1">
-                  <div class="d-flex justify-content-between align-items-center">
-                    <span class="fw-bold">THỰC THU:</span>
-                    <span id="totalGrandPrice" class="fs-5 fw-bold text-danger">0 đ</span>
-                  </div>
-                </div>
 
-                <button id="btnSubmitOrder" class="btn btn-primary w-100 py-2 fw-semibold" disabled>
-                  <i class="bi bi-check-circle me-1"></i> HOÀN TẤT BÁN HÀNG & XUẤT KHO [F4]
-                </button>
+                  <button id="btnSubmitOrder" class="btn btn-primary w-100 py-2 fw-semibold shadow-sm" disabled>
+                    <i class="bi bi-check-circle me-1"></i> HOÀN TẤT BÁN HÀNG & XUẤT KHO [F4]
+                  </button>
+                </div>
               </div>
             </div>
           </div>

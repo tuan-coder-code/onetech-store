@@ -104,15 +104,15 @@ async function loadKhachHangList() {
         </td>
         <td><span class="badge ${getBadgeColor(kh.hangThanhVien)}">${escapeHtml(kh.hangThanhVien || 'Đồng')}</span></td>
         <td class="fw-semibold">${formatCurrency(kh.tongChiTieu || 0)}</td>
-        <td class="text-end">
-          <div class="btn-group btn-group-sm">
+        <td class="text-end pe-3">
+          <div class="d-inline-flex justify-content-end align-items-center" style="gap: 6px;">
             ${isSellerOrCashierOrManager ? `
-              <a href="/khach-hang/form.html?id=${kh._id}" class="btn btn-outline-primary" title="Sửa">
+              <a href="/khach-hang/form.html?id=${kh._id}" class="btn-action btn-action-edit" title="Sửa">
                 <i class="bi bi-pencil"></i>
               </a>
             ` : ''}
             ${isManager ? `
-              <button type="button" class="btn btn-outline-danger" title="Xóa" onclick="deleteKhachHang('${kh._id}', '${escapeHtml(kh.hoTen)}')">
+              <button type="button" class="btn-action btn-action-cancel" title="Xóa" onclick="deleteKhachHang('${kh._id}', '${escapeHtml(kh.hoTen)}')">
                 <i class="bi bi-trash"></i>
               </button>
             ` : ''}

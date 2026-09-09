@@ -93,11 +93,15 @@ async function loadAccounts(page = 1, search = '') {
         <td>
           <span class="badge ${isLocked ? 'bg-danger' : 'bg-success'}">${acc.trangThai}</span>
         </td>
-        <td class="text-end">
-          <button class="btn btn-sm btn-light text-warning" onclick="resetPassword('${acc._id}')" title="Reset Mật Khẩu"><i class="bi bi-key"></i></button>
-          <button class="btn btn-sm btn-light ${isLocked ? 'text-success' : 'text-danger'}" onclick="toggleStatus('${acc._id}')" title="${isLocked ? 'Mở Khóa' : 'Khóa'}">
-            <i class="bi ${isLocked ? 'bi-unlock' : 'bi-lock'}"></i>
-          </button>
+        <td class="text-end pe-3">
+          <div class="d-inline-flex justify-content-end align-items-center" style="gap: 6px;">
+            <button class="btn-action btn-action-edit" onclick="resetPassword('${acc._id}')" title="Reset Mật Khẩu">
+              <i class="bi bi-key-fill"></i>
+            </button>
+            <button class="btn-action ${isLocked ? 'btn-action-deliver' : 'btn-action-cancel'}" onclick="toggleStatus('${acc._id}')" title="${isLocked ? 'Mở Khóa tài khoản' : 'Khóa tài khoản'}">
+              <i class="bi ${isLocked ? 'bi-unlock-fill' : 'bi-lock-fill'}"></i>
+            </button>
+          </div>
         </td>
       </tr>
     `;

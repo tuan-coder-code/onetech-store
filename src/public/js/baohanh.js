@@ -133,8 +133,8 @@ async function performLookup(imei) {
                     : '<span class="text-muted small">Không thay linh kiện</span>'}
                 </td>
                 <td><span class="badge ${h.trangThai === 'Da sua xong' || h.trangThai === 'Tra khach' ? 'bg-success' : 'bg-warning'}">${escapeHtml(h.trangThai)}</span></td>
-                <td class="text-end">
-                  <button class="btn btn-sm btn-outline-primary" onclick="viewPbhDetail('${h._id}')">
+                <td class="text-end pe-3">
+                  <button class="btn-action btn-action-view" onclick="viewPbhDetail('${h._id}')" title="Xem chi tiết">
                     <i class="bi bi-eye"></i>
                   </button>
                 </td>

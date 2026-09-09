@@ -382,20 +382,20 @@ document.addEventListener('DOMContentLoaded', async () => {
           <td>${statusBadge}</td>
           <td class="text-muted small">${createdAtStr}</td>
           <td class="text-end pe-3">
-            <div class="btn-group btn-group-sm">
-              <button type="button" class="btn btn-outline-primary btn-view-detail" data-id="${order._id}" title="Xem chi tiết & Phiếu thu">
+            <div class="d-inline-flex justify-content-end align-items-center" style="gap: 6px;">
+              <button type="button" class="btn-action btn-action-view btn-view-detail" data-id="${order._id}" title="Xem chi tiết & Phiếu thu">
                 <i class="bi bi-eye"></i>
               </button>
               ${isUpdatable ? `
-                <button type="button" class="btn btn-outline-success btn-deliver-order" data-id="${order._id}" data-name="${order.khachHang ? escapeHtml(order.khachHang.hoTen) : ''}" data-deposit="${order.soTienCoc || 0}" data-imei="${order.imei || ''}" title="Khách nhận máy & Xuất hóa đơn cấn trừ cọc">
+                <button type="button" class="btn-action btn-action-deliver btn-deliver-order" data-id="${order._id}" data-name="${order.khachHang ? escapeHtml(order.khachHang.hoTen) : ''}" data-deposit="${order.soTienCoc || 0}" data-imei="${order.imei || ''}" title="Khách nhận máy & Xuất hóa đơn cấn trừ cọc">
                   <i class="bi bi-box-seam"></i>
                 </button>
-                <button type="button" class="btn btn-outline-secondary btn-update-status" data-id="${order._id}" data-status="${order.trangThai}" data-imei="${order.imei || ''}" title="Cập nhật trạng thái / Gán IMEI">
+                <button type="button" class="btn-action btn-action-edit btn-update-status" data-id="${order._id}" data-status="${order.trangThai}" data-imei="${order.imei || ''}" title="Cập nhật trạng thái / Gán IMEI">
                   <i class="bi bi-pencil"></i>
                 </button>
               ` : ''}
               ${isCancellable ? `
-                <button type="button" class="btn btn-outline-danger btn-cancel-order" data-id="${order._id}" data-name="${order.khachHang ? escapeHtml(order.khachHang.hoTen) : ''}" data-deposit="${order.soTienCoc || 0}" title="Hủy đơn & Hoàn cọc">
+                <button type="button" class="btn-action btn-action-cancel btn-cancel-order" data-id="${order._id}" data-name="${order.khachHang ? escapeHtml(order.khachHang.hoTen) : ''}" data-deposit="${order.soTienCoc || 0}" title="Hủy đơn & Hoàn cọc">
                   <i class="bi bi-x-lg"></i>
                 </button>
               ` : ''}

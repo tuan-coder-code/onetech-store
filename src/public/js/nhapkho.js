@@ -96,8 +96,8 @@ async function loadDanhSachPhieuNhap() {
       <td class="text-end fw-bold text-success">${formatCurrency(pn.tongTien)}</td>
       <td><div class="text-muted small text-truncate" style="max-width: 200px;">${pn.ghiChu || '---'}</div></td>
       <td class="text-center">
-        <button class="btn btn-sm btn-outline-primary" onclick="viewDetailPhieuNhap('${pn._id}')">
-          <i class="bi bi-eye me-1"></i> Xem
+        <button class="btn-action btn-action-view" onclick="viewDetailPhieuNhap('${pn._id}')" title="Xem chi tiết phiếu nhập">
+          <i class="bi bi-eye"></i>
         </button>
       </td>
     </tr>

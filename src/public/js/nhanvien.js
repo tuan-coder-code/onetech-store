@@ -106,13 +106,13 @@ async function loadNhanVienList() {
               ${nv.trangThai || 'Hoạt động'}
             </span>
           </td>
-          <td class="text-end">
-            <div class="btn-group btn-group-sm">
-              <a href="/nhan-vien/form.html?id=${nv._id}" class="btn btn-outline-primary" title="Sửa">
+          <td class="text-end pe-3">
+            <div class="d-inline-flex justify-content-end align-items-center" style="gap: 6px;">
+              <a href="/nhan-vien/form.html?id=${nv._id}" class="btn-action btn-action-edit" title="Sửa">
                 <i class="bi bi-pencil"></i>
               </a>
               ${!isCurrentLoggedIn ? `
-                <button type="button" class="btn btn-outline-danger" title="Xóa" onclick="deleteNhanVien('${nv._id}', '${escapeHtml(nv.hoTen)}')">
+                <button type="button" class="btn-action btn-action-cancel" title="Xóa" onclick="deleteNhanVien('${nv._id}', '${escapeHtml(nv.hoTen)}')">
                   <i class="bi bi-trash"></i>
                 </button>
               ` : ''}
