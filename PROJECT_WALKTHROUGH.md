@@ -617,5 +617,9 @@ Khi các thành viên tiếp tục triển khai các module tiếp theo (stress 
 ### 9.3. Cơ Chế Cô Lập & Tự Động Dọn Dẹp Dữ Liệu Test (`tests/cleanup_db.js`)
 - Tích hợp hook tự động dọn dẹp dữ liệu rác trước và sau khi chạy test suite trong `run_all_tests.js`, đảm bảo cơ sở dữ liệu thật luôn sạch sẽ và không bị nhân bản các bản ghi dummy khi thực thi kiểm thử liên tục.
 
-
-
+### 9.4. Chuẩn Hóa Hệ Thống Giao Diện UI/UX & Đồng Bộ Nút Tác Vụ (PR #22 & PR #23)
+- **Hệ thống Action Buttons chuẩn hóa (.btn-action-*)**: Đồng bộ hóa toàn bộ các bảng dữ liệu trên 14 phân hệ (.btn-action-view, .btn-action-edit, .btn-action-cancel, .btn-action-deliver, .btn-action-print) với style vibrant solid, hiệu ứng hover/active nổi bật, độ phản hồi cao.
+- **Nút Reset bộ lọc (.btn-reset-filter)**: Chuẩn hóa nút đặt lại bộ lọc tìm kiếm trên tất cả các trang quản lý.
+- **Hiện đại hóa Nav Pills & Giao diện POS 60/40**: Thanh tab danh mục bo tròn thanh thoát, phân chia tỷ lệ 60% (chọn máy/phụ kiện) và 40% (giỏ hàng/thanh toán), bảng phím tắt POS trực quan với badge phím rõ nét.
+- **Khắc phục lỗi cú pháp form Nhân viên (PR #22)**: Loại bỏ các khai báo trùng lặp const gây crash submit form nhân viên.
+- **Bảo toàn tính năng Khách mới POS (Guest Checkout)**: Khôi phục và đồng bộ mượt mà khối chuyển đổi Khách mới / Thành viên, CCCD và số điện thoại trên giao diện POS mới.
