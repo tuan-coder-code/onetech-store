@@ -257,11 +257,11 @@ onetech/
 ├── 3. Mua hàng & Chi phí (Purchasing)
 │   ├── PhieuNhap (nhaCungCap, nhanVien, ngayNhap, tongTien, ghiChu)
 │   ├── CT_PhieuNhap (phieuNhap, imei -> MayImei, donGiaNhap)
-│   └── PhieuChi (phieuNhap, donDatHang, phieuDoiTra, maDT, soTien, hinhThuc, ngayChi, lyDo)
+│   └── PhieuChi (phieuNhap, donDatHang, phieuDoiTra, maDT, soTien, hinhThuc, ngayChi, nguoiNhan, chungTuLienQuan, lyDo)
 │
 ├── 4. Thanh toán & Công nợ (Finance)
 │   ├── CongNo (loaiDoiTuong ['KhachHang'|'NhaCungCap'], khachHang, nhaCungCap, hoaDon, phieuNhap, soTienNo, soTienDaTra, hanThanhToan, trangThai)
-│   └── PhieuThu (hoaDon, donDatHang, congNo, soTien, hinhThuc, ngayThu, ghiChu)
+│   └── PhieuThu (hoaDon, donDatHang, congNo, soTien, hinhThuc, ngayThu, nguoiNop, chungTuLienQuan, ghiChu)
 │
 ├── 5. Kho vận (Warehouse)
 │   ├── Kho (tenKho, diaChi)

@@ -307,6 +307,18 @@
             <input type="text" id="inputThuSoTien" class="format-currency form-control form-control-lg fw-bold text-success" placeholder="0" min="1000" required>
           </div>
           <div class="mb-3">
+            <label class="form-label fw-semibold">Ngày thu tiền</label>
+            <input type="datetime-local" id="inputThuNgay" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Người nộp</label>
+            <input type="text" id="inputThuNguoiNop" class="form-control" placeholder="Nhập tên người nộp...">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Chứng từ liên quan</label>
+            <input type="text" id="inputThuChungTu" class="form-control" placeholder="Mã đơn hàng, số hóa đơn...">
+          </div>
+          <div class="mb-3">
             <label class="form-label fw-semibold">Hình thức thanh toán <span class="text-danger">*</span></label>
             <select id="inputThuHinhThuc" class="form-select" required>
               <option value="Tien mat">Tiền mặt</option>
@@ -342,6 +354,18 @@
           <div class="mb-3">
             <label class="form-label fw-semibold">Số tiền chi (VNĐ) <span class="text-danger">*</span></label>
             <input type="text" id="inputChiSoTien" class="format-currency form-control form-control-lg fw-bold text-danger" placeholder="0" min="1000" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Ngày chi tiền</label>
+            <input type="datetime-local" id="inputChiNgay" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Người nhận</label>
+            <input type="text" id="inputChiNguoiNhan" class="form-control" placeholder="Nhập tên người nhận...">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Chứng từ liên quan</label>
+            <input type="text" id="inputChiChungTu" class="form-control" placeholder="Mã hóa đơn, phiếu nhập...">
           </div>
           <div class="mb-3">
             <label class="form-label fw-semibold">Hình thức chi tiền <span class="text-danger">*</span></label>

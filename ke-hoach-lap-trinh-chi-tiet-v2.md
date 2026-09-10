@@ -245,8 +245,8 @@
 #### Tuần 3: Module Lõi Thu - Chi & Sổ quỹ Dùng chung [ĐÃ HOÀN THÀNH 100%]
 - [x] Xây dựng `ThanhToanService` kế thừa `BaseService`, `ThanhToanController`, route `/api/thanh-toan`.
 - [x] **Export 2 hàm dùng chung cho cả nhóm:**
-  - `taoPhieuThu({ hoaDon, donDatHang, congNo, phieuDoiTra, soTien, hinhThuc, ghiChu, ngayThu, sessionUser })`
-  - `taoPhieuChi({ phieuNhap, donDatHang, phieuDoiTra, maDT, soTien, hinhThuc, lyDo, ngayChi, sessionUser })`
+  - `taoPhieuThu({ hoaDon, donDatHang, congNo, phieuDoiTra, soTien, hinhThuc, ghiChu, ngayThu, nguoiNop, chungTuLienQuan, sessionUser })`
+  - `taoPhieuChi({ phieuNhap, donDatHang, phieuDoiTra, maDT, soTien, hinhThuc, lyDo, ngayChi, nguoiNhan, chungTuLienQuan, sessionUser })`
 - [x] `POST /api/thanh-toan/thu`, `POST /api/thanh-toan/chi`.
 - [x] `GET /api/thanh-toan/so-quy?tuNgay=&denNgay=` — Tính tổng thu, tổng chi, số dư tồn quỹ theo khoảng thời gian và phân loại theo hình thức thanh toán.
 - [x] Xây dựng giao diện Sổ Quỹ `src/public/pages/so-quy/index.html` và `src/public/js/soquy.js`.

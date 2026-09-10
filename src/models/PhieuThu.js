@@ -7,6 +7,8 @@ const phieuThuSchema = new mongoose.Schema({
   phieuDoiTra: { type: mongoose.Schema.Types.ObjectId, ref: 'PhieuDoiTra' },
   soTien: { type: Number, required: true, min: 0 },
   ngayThu: { type: Date, default: Date.now },
+  nguoiNop: { type: String, default: '' },
+  chungTuLienQuan: { type: String, default: '' },
   hinhThuc: {
     type: String,
     enum: ['Tien mat', 'Chuyen khoan', 'Quet the', 'Vi dien tu'],

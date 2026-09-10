@@ -160,10 +160,12 @@ async function loadDanhSachThu() {
   }
 
   tbody.innerHTML = res.data.list.map(pt => {
-    let lienKet = 'Thu trực tiếp';
+    let lienKet = pt.chungTuLienQuan || 'Thu trực tiếp';
     if (pt.hoaDon) lienKet = `Hóa đơn: ${pt.hoaDon.soHD || pt.hoaDon._id}`;
     else if (pt.donDatHang) lienKet = `Đơn đặt: ${pt.donDatHang.maDonDat || pt.donDatHang._id}`;
     else if (pt.congNo) lienKet = `Công nợ: ${pt.congNo.maCN || pt.congNo._id}`;
+
+    let thongTinBoSung = pt.nguoiNop ? `<div><small class="text-info"><i class="bi bi-person"></i> ${escapeHtml(pt.nguoiNop)}</small></div>` : '';
 
     return `
       <tr>
@@ -173,7 +175,10 @@ async function loadDanhSachThu() {
         </td>
         <td class="text-end fw-bold text-success">+${formatCurrency(pt.soTien)}</td>
         <td><span class="badge bg-success-subtle text-success">${pt.hinhThuc}</span></td>
-        <td><span class="badge bg-light text-dark border">${escapeHtml(lienKet)}</span></td>
+        <td>
+          <span class="badge bg-light text-dark border mb-1">${escapeHtml(lienKet)}</span>
+          ${thongTinBoSung}
+        </td>
         <td><div class="text-muted small text-truncate" style="max-width: 250px;">${escapeHtml(pt.ghiChu || '---')}</div></td>
         <td class="text-center">
           <button class="btn-action btn-action-view" onclick="viewTransactionDetail('${pt._id}', 'THU')" title="Xem chi tiết phiếu thu">
@@ -206,9 +211,11 @@ async function loadDanhSachChi() {
   }
 
   tbody.innerHTML = res.data.list.map(pc => {
-    let lienKet = pc.maDT ? `Đối tượng: ${pc.maDT}` : 'Chi trực tiếp';
+    let lienKet = pc.chungTuLienQuan || (pc.maDT ? `Đối tượng: ${pc.maDT}` : 'Chi trực tiếp');
     if (pc.phieuNhap) lienKet = `Phiếu nhập: ${pc.phieuNhap.soPN || pc.phieuNhap._id}`;
     else if (pc.donDatHang) lienKet = `Hoàn cọc đơn đặt: ${pc.donDatHang.maDonDat || pc.donDatHang._id}`;
+
+    let thongTinBoSung = pc.nguoiNhan ? `<div><small class="text-info"><i class="bi bi-person"></i> ${escapeHtml(pc.nguoiNhan)}</small></div>` : '';
 
     return `
       <tr>
@@ -218,7 +225,10 @@ async function loadDanhSachChi() {
         </td>
         <td class="text-end fw-bold text-danger">-${formatCurrency(pc.soTien)}</td>
         <td><span class="badge bg-danger-subtle text-danger">${pc.hinhThuc}</span></td>
-        <td><span class="badge bg-light text-dark border">${escapeHtml(lienKet)}</span></td>
+        <td>
+          <span class="badge bg-light text-dark border mb-1">${escapeHtml(lienKet)}</span>
+          ${thongTinBoSung}
+        </td>
         <td><div class="text-muted small text-truncate" style="max-width: 250px;">${escapeHtml(pc.lyDo || '---')}</div></td>
         <td class="text-center">
           <button class="btn-action btn-action-view" onclick="viewTransactionDetail('${pc._id}', 'CHI')" title="Xem chi tiết phiếu chi">
@@ -244,16 +254,19 @@ function openCreateChiModal() {
 
 async function handleCreateThu(e) {
   e.preventDefault();
-  const soTien = Number((document.getElementById('inputThuSoTien').value || '').replace(/[^\\d]/g, ''));
+  const soTien = Number((document.getElementById('inputThuSoTien').value || '').replace(/[^\d]/g, ''));
   const hinhThuc = document.getElementById('inputThuHinhThuc').value;
   const ghiChu = document.getElementById('inputThuGhiChu').value.trim();
+  const ngayThu = document.getElementById('inputThuNgay')?.value;
+  const nguoiNop = document.getElementById('inputThuNguoiNop')?.value.trim();
+  const chungTuLienQuan = document.getElementById('inputThuChungTu')?.value.trim();
 
   if (!soTien || soTien <= 0) {
     showToast('Vui lòng nhập số tiền hợp lệ (> 0 đ)', 'danger');
     return;
   }
 
-  const res = await api.post('/thanh-toan/thu', { soTien, hinhThuc, ghiChu });
+  const res = await api.post('/thanh-toan/thu', { soTien, hinhThuc, ghiChu, ngayThu, nguoiNop, chungTuLienQuan });
   if (res.success) {
     showToast('Lập Phiếu Thu tiền thành công!', 'success');
     bootstrap.Modal.getInstance(document.getElementById('modalCreateThu')).hide();
@@ -265,17 +278,20 @@ async function handleCreateThu(e) {
 
 async function handleCreateChi(e) {
   e.preventDefault();
-  const soTien = Number((document.getElementById('inputChiSoTien').value || '').replace(/[^\\d]/g, ''));
+  const soTien = Number((document.getElementById('inputChiSoTien').value || '').replace(/[^\d]/g, ''));
   const hinhThuc = document.getElementById('inputChiHinhThuc').value;
   const maDT = document.getElementById('inputChiMaDT').value.trim();
   const lyDo = document.getElementById('inputChiLyDo').value.trim();
+  const ngayChi = document.getElementById('inputChiNgay')?.value;
+  const nguoiNhan = document.getElementById('inputChiNguoiNhan')?.value.trim();
+  const chungTuLienQuan = document.getElementById('inputChiChungTu')?.value.trim();
 
   if (!soTien || soTien <= 0) {
     showToast('Vui lòng nhập số tiền hợp lệ (> 0 đ)', 'danger');
     return;
   }
 
-  const res = await api.post('/thanh-toan/chi', { soTien, hinhThuc, maDT, lyDo });
+  const res = await api.post('/thanh-toan/chi', { soTien, hinhThuc, maDT, lyDo, ngayChi, nguoiNhan, chungTuLienQuan });
   if (res.success) {
     showToast('Lập Phiếu Chi tiền thành công!', 'success');
     bootstrap.Modal.getInstance(document.getElementById('modalCreateChi')).hide();
@@ -318,6 +334,8 @@ async function viewTransactionDetail(id, type) {
           <div class="col-6 text-muted">Nội dung thu:</div>
           <div class="col-6 text-end">${escapeHtml(item.ghiChu || '---')}</div>
         </div>
+        ${item.nguoiNop ? `<div class="row g-2 mb-2"><div class="col-6 text-muted">Người nộp:</div><div class="col-6 text-end">${escapeHtml(item.nguoiNop)}</div></div>` : ''}
+        ${item.chungTuLienQuan ? `<div class="row g-2 mb-2"><div class="col-6 text-muted">Chứng từ liên quan:</div><div class="col-6 text-end">${escapeHtml(item.chungTuLienQuan)}</div></div>` : ''}
         ${item.hoaDon ? `<div class="row g-2 mb-2"><div class="col-6 text-muted">Hóa đơn:</div><div class="col-6 text-end font-monospace">${item.hoaDon.soHD || item.hoaDon._id}</div></div>` : ''}
         ${item.donDatHang ? `<div class="row g-2 mb-2"><div class="col-6 text-muted">Đơn đặt trước:</div><div class="col-6 text-end font-monospace">${item.donDatHang.maDonDat || item.donDatHang._id}</div></div>` : ''}
       ` : `
@@ -325,7 +343,9 @@ async function viewTransactionDetail(id, type) {
           <div class="col-6 text-muted">Lý do chi:</div>
           <div class="col-6 text-end">${escapeHtml(item.lyDo || '---')}</div>
         </div>
-        ${item.maDT ? `<div class="row g-2 mb-2"><div class="col-6 text-muted">Đối tượng nhận:</div><div class="col-6 text-end font-monospace">${escapeHtml(item.maDT)}</div></div>` : ''}
+        ${item.nguoiNhan ? `<div class="row g-2 mb-2"><div class="col-6 text-muted">Người nhận:</div><div class="col-6 text-end">${escapeHtml(item.nguoiNhan)}</div></div>` : ''}
+        ${item.chungTuLienQuan ? `<div class="row g-2 mb-2"><div class="col-6 text-muted">Chứng từ liên quan:</div><div class="col-6 text-end">${escapeHtml(item.chungTuLienQuan)}</div></div>` : ''}
+        ${item.maDT ? `<div class="row g-2 mb-2"><div class="col-6 text-muted">Đối tượng nhận (Mã):</div><div class="col-6 text-end font-monospace">${escapeHtml(item.maDT)}</div></div>` : ''}
         ${item.phieuNhap ? `<div class="row g-2 mb-2"><div class="col-6 text-muted">Phiếu nhập kho:</div><div class="col-6 text-end font-monospace">${item.phieuNhap.soPN || item.phieuNhap._id}</div></div>` : ''}
         ${item.donDatHang ? `<div class="row g-2 mb-2"><div class="col-6 text-muted">Hoàn cọc đơn:</div><div class="col-6 text-end font-monospace">${item.donDatHang.maDonDat || item.donDatHang._id}</div></div>` : ''}
       `}

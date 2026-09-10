@@ -27,7 +27,9 @@ class ThanhToanService extends BaseService {
       soTien,
       hinhThuc = 'Tien mat',
       ghiChu = '',
-      ngayThu
+      ngayThu,
+      nguoiNop = '',
+      chungTuLienQuan = ''
     } = payload;
 
     const amount = Number(soTien);
@@ -46,6 +48,8 @@ class ThanhToanService extends BaseService {
       soTien: amount,
       hinhThuc: selectedHinhThuc,
       ngayThu: ngayThu ? new Date(ngayThu) : new Date(),
+      nguoiNop: nguoiNop || '',
+      chungTuLienQuan: chungTuLienQuan || '',
       ghiChu: ghiChu || ''
     });
 
@@ -65,7 +69,9 @@ class ThanhToanService extends BaseService {
       soTien,
       hinhThuc = 'Tien mat',
       lyDo = '',
-      ngayChi
+      ngayChi,
+      nguoiNhan = '',
+      chungTuLienQuan = ''
     } = payload;
 
     const amount = Number(soTien);
@@ -84,6 +90,8 @@ class ThanhToanService extends BaseService {
       soTien: amount,
       hinhThuc: selectedHinhThuc,
       ngayChi: ngayChi ? new Date(ngayChi) : new Date(),
+      nguoiNhan: nguoiNhan || '',
+      chungTuLienQuan: chungTuLienQuan || '',
       lyDo: lyDo || ''
     });
 
