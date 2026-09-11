@@ -850,3 +850,72 @@ async function inBienBanTheoId(id) {
     api.showToast('Không thể tải dữ liệu để in biên bản', 'danger');
   }
 }
+
+/**
+ * Đọc file Excel (.xlsx, .xls, .csv) và trích xuất danh sách mã IMEI vào form kiểm kê
+ */
+async function handleExcelKiemKeUpload(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  if (typeof XLSX === 'undefined') {
+    api.showToast('Thư viện SheetJS chưa được tải. Vui lòng làm mới trang!', 'danger');
+    return;
+  }
+
+  try {
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data, { type: 'array' });
+
+    let rawValues = [];
+    workbook.SheetNames.forEach(sheetName => {
+      const sheet = workbook.Sheets[sheetName];
+      const json = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
+      json.forEach(row => {
+        if (Array.isArray(row)) {
+          row.forEach(cell => {
+            if (cell != null) {
+              const str = String(cell).trim();
+              if (str) rawValues.push(str);
+            }
+          });
+        }
+      });
+    });
+
+    const imeis = [];
+    rawValues.forEach(val => {
+      const parts = val.split(/[\n,;\t\r]+/).map(s => s.trim()).filter(Boolean);
+      parts.forEach(p => {
+        const clean = p.replace(/\s+/g, '');
+        if (/^[a-zA-Z0-9]{8,20}$/.test(clean)) {
+          imeis.push(clean);
+        }
+      });
+    });
+
+    const uniqueImeis = [...new Set(imeis)];
+
+    if (uniqueImeis.length === 0) {
+      api.showToast(`Không tìm thấy mã IMEI hợp lệ nào trong file "${file.name}"`, 'warning');
+      event.target.value = '';
+      return;
+    }
+
+    const textarea = document.getElementById('textareaImeiThucTe');
+    if (textarea) {
+      const currentVal = textarea.value.trim();
+      const existingList = currentVal ? currentVal.split(/[\n,;\t\r]+/).map(s => s.trim()).filter(Boolean) : [];
+      const combined = [...new Set([...existingList, ...uniqueImeis])];
+      textarea.value = combined.join('\n');
+      updateCountScanned();
+      api.showToast(`Đã đọc và nạp thành công ${uniqueImeis.length} mã IMEI từ file "${file.name}"!`, 'success');
+    }
+  } catch (err) {
+    console.error('Lỗi khi đọc file Excel:', err);
+    api.showToast(`Lỗi đọc file Excel: ${err.message || 'File không đúng định dạng'}`, 'danger');
+  } finally {
+    event.target.value = '';
+  }
+}
+window.handleExcelKiemKeUpload = handleExcelKiemKeUpload;
