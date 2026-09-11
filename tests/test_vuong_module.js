@@ -72,10 +72,14 @@ async function runTests() {
       hoaDon: hd ? hd._id : null,
       soTien: 5000000,
       hinhThuc: 'Chuyen khoan',
-      ghiChu: 'Khách thanh toán chuyển khoản'
+      ghiChu: 'Khách thanh toán chuyển khoản',
+      nguoiNop: 'Anh Hoàng Nam',
+      chungTuLienQuan: 'HD-2026-HN01'
     });
 
     assert(ptChuyenKhoan.hinhThuc === 'Chuyen khoan', 'Hình thức: Chuyển khoản');
+    assert(ptChuyenKhoan.nguoiNop === 'Anh Hoàng Nam', 'Lưu chính xác người nộp: Anh Hoàng Nam');
+    assert(ptChuyenKhoan.chungTuLienQuan === 'HD-2026-HN01', 'Lưu chính xác chứng từ liên quan: HD-2026-HN01');
     if (hd) {
       assert(ptChuyenKhoan.hoaDon.toString() === hd._id.toString(), 'Liên kết đúng mã Hóa đơn');
     }
@@ -98,11 +102,15 @@ async function runTests() {
       maDT: 'NCC-SAMSUNG-VN',
       soTien: 12000000,
       hinhThuc: 'Chuyen khoan',
-      lyDo: 'Thanh toán đợt 1 tiền hàng phụ kiện'
+      lyDo: 'Thanh toán đợt 1 tiền hàng phụ kiện',
+      nguoiNhan: 'Đại diện Samsung VN',
+      chungTuLienQuan: 'PN-2026-SS01'
     });
 
     assert(pcNhaCungCap.maDT === 'NCC-SAMSUNG-VN', 'Lưu đúng mã đối tượng nhận: NCC-SAMSUNG-VN');
     assert(pcNhaCungCap.soTien === 12000000, 'Số tiền chi chuyển khoản: 12.000.000 đ');
+    assert(pcNhaCungCap.nguoiNhan === 'Đại diện Samsung VN', 'Lưu chính xác người nhận: Đại diện Samsung VN');
+    assert(pcNhaCungCap.chungTuLienQuan === 'PN-2026-SS01', 'Lưu chính xác chứng từ liên quan: PN-2026-SS01');
 
     // -------------------------------------------------------------
     // TEST 3: Validation đầu vào (Số tiền <= 0 -> 400 Bad Request)
@@ -131,6 +139,13 @@ async function runTests() {
     });
     assert(ptFallback.hinhThuc === 'Tien mat', 'Hình thức không hợp lệ tự động fallback về "Tien mat"');
 
+    // Fallback an toàn khi chuỗi ngày không hợp lệ
+    const ptInvalidDate = await ThanhToanService.taoPhieuThu({
+      soTien: 200000,
+      ngayThu: 'ngay-khong-hop-le'
+    });
+    assert(ptInvalidDate.ngayThu instanceof Date && !isNaN(ptInvalidDate.ngayThu.getTime()), 'Fallback an toàn khi truyền chuỗi ngày không hợp lệ');
+
     // -------------------------------------------------------------
     // TEST 4: Lấy danh sách & Phân trang Phiếu Thu
     // -------------------------------------------------------------
@@ -145,6 +160,10 @@ async function runTests() {
     const allCK = resThuCK.list.every(item => item.hinhThuc === 'Chuyen khoan');
     assert(allCK, 'Bộ lọc theo hình thức "Chuyen khoan" hoạt động chính xác 100%');
 
+    // Tìm kiếm đa trường (nguoiNop)
+    const resSearchThu = await ThanhToanService.getPhieuThuList({ search: 'Hoàng Nam' });
+    assert(resSearchThu.list.some(item => item.nguoiNop === 'Anh Hoàng Nam'), 'Tìm kiếm phiếu thu theo người nộp thành công');
+
     // -------------------------------------------------------------
     // TEST 5: Lấy danh sách & Phân trang Phiếu Chi
     // -------------------------------------------------------------
@@ -153,6 +172,10 @@ async function runTests() {
     assert(Array.isArray(resChiList.list), 'Trả về danh sách phiếu chi dạng mảng');
     assert(resChiList.list.length > 0, `Đã tìm thấy ${resChiList.list.length} phiếu chi`);
     assert(resChiList.pagination && resChiList.pagination.total >= resChiList.list.length, 'Có thông tin phân trang chuẩn');
+
+    // Tìm kiếm đa trường (nguoiNhan)
+    const resSearchChi = await ThanhToanService.getPhieuChiList({ search: 'Samsung VN' });
+    assert(resSearchChi.list.some(item => item.nguoiNhan === 'Đại diện Samsung VN'), 'Tìm kiếm phiếu chi theo người nhận thành công');
 
     // -------------------------------------------------------------
     // TEST 6: Lấy chi tiết Phiếu Thu & Phiếu Chi

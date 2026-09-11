@@ -7,6 +7,8 @@ const phieuChiSchema = new mongoose.Schema({
   maDT: { type: String, default: '' }, // Mã đối tượng chi (NCC, Khách hàng...)
   soTien: { type: Number, required: true, min: 0 },
   ngayChi: { type: Date, default: Date.now },
+  nguoiNhan: { type: String, default: '' },
+  chungTuLienQuan: { type: String, default: '' },
   hinhThuc: {
     type: String,
     enum: ['Tien mat', 'Chuyen khoan', 'Quet the', 'Vi dien tu'],
