@@ -231,6 +231,56 @@ async function runTests() {
     assert(huyTest.phieuChi.soTien === 1800000, 'Số tiền trên Phiếu Chi hoàn cọc khớp 1.800.000 đ');
 
     // -------------------------------------------------------------
+    // TEST 8B: Kiểm thử biên (Edge Cases) - Ngày tháng, XSS & Advanced Search
+    // -------------------------------------------------------------
+    console.log('\n--- TEST 8B: Kiểm thử biên (Edge Cases) - Ngày tháng, XSS & Advanced Search ---');
+    
+    // 1. Tạo phiếu với ngày trong quá khứ/tương lai xa
+    const pastDate = new Date();
+    pastDate.setFullYear(2000);
+    const ptPast = await ThanhToanService.taoPhieuThu({
+      soTien: 10000,
+      ngayThu: pastDate.toISOString(),
+      hinhThuc: 'Tien mat',
+      ghiChu: 'Test quá khứ'
+    });
+    assert(ptPast.ngayThu.getFullYear() === 2000, 'Tạo phiếu thu ngày trong quá khứ thành công');
+
+    const futureDate = new Date();
+    futureDate.setFullYear(2050);
+    const ptFuture = await ThanhToanService.taoPhieuThu({
+      soTien: 10000,
+      ngayThu: futureDate.toISOString(),
+      hinhThuc: 'Tien mat',
+      ghiChu: 'Test tương lai'
+    });
+    assert(ptFuture.ngayThu.getFullYear() === 2050, 'Tạo phiếu thu ngày trong tương lai xa thành công');
+
+    // 2. Test lưu trữ XSS (đảm bảo không ném lỗi do regex khi có ký tự đặc biệt)
+    const ptXssSearch = await ThanhToanService.taoPhieuThu({
+      soTien: 20000,
+      hinhThuc: 'Tien mat',
+      nguoiNop: '<script>alert("xss")</script> Nguyễn Văn A',
+      chungTuLienQuan: '`!@#$%^&*()_+-=~'
+    });
+    assert(ptXssSearch.nguoiNop === '<script>alert("xss")</script> Nguyễn Văn A', 'Dữ liệu XSS được lưu đầy đủ vào DB, phó thác việc escape cho Frontend xử lý (Quy tắc 4.4)');
+    
+    // 3. Tìm kiếm kết hợp (Tìm theo nguoiNop nhưng tuNgay/denNgay trống và ngược lại)
+    const searchNoDate = await ThanhToanService.getPhieuThuList({ 
+      search: 'Nguyễn Văn A',
+      tuNgay: '',
+      denNgay: ''
+    });
+    assert(searchNoDate.list.some(item => item._id.toString() === ptXssSearch._id.toString()), 'Tìm kiếm kết hợp (có search, bỏ trống tuNgay/denNgay) hoạt động tốt');
+
+    const searchDateOnly = await ThanhToanService.getPhieuThuList({ 
+      search: '',
+      tuNgay: pastDate.toISOString(),
+      denNgay: new Date('2010-01-01').toISOString()
+    });
+    assert(searchDateOnly.list.some(item => item._id.toString() === ptPast._id.toString()), 'Tìm kiếm kết hợp (bỏ trống search, có tuNgay/denNgay) hoạt động tốt');
+
+    // -------------------------------------------------------------
     // TEST 9: HTTP REST API Endpoints & RBAC (403 Forbidden)
     // -------------------------------------------------------------
     console.log('\n--- TEST 9: Kiểm thử HTTP API Endpoints & RBAC 403 ---');

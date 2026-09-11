@@ -863,6 +863,13 @@ async function handleExcelKiemKeUpload(event) {
     return;
   }
 
+  // Danh sách từ khóa tiêu đề cột thường gặp trong Excel cần bỏ qua
+  const ignoreKeywords = new Set([
+    'STT', 'MAMAY', 'TENMAY', 'SANPHAM', 'IMEI', 'MAIMEI', 'SERIAL', 'SERIALNUMBER',
+    'DESCRIPTION', 'NOTE', 'GHICHU', 'STATUS', 'TRANGTHAI', 'PRICE', 'GIANHAP', 'GIABAN',
+    'SOLUONG', 'QUANTITY', 'NHACUNGCAP', 'SUPPLIER', 'PHONENUMBER', 'DIENTHOAI', 'DANHSACH'
+  ]);
+
   try {
     const data = await file.arrayBuffer();
     const workbook = XLSX.read(data, { type: 'array' });
@@ -885,19 +892,37 @@ async function handleExcelKiemKeUpload(event) {
 
     const imeis = [];
     rawValues.forEach(val => {
-      const parts = val.split(/[\n,;\t\r]+/).map(s => s.trim()).filter(Boolean);
+      // Nếu nguyên ô khi bỏ khoảng trắng là mã IMEI 14-16 chữ số (VD: 3589 1234 5678 901)
+      const cellClean = String(val).trim();
+      const cellDigits = cellClean.replace(/\s+/g, '');
+      if (/^\d{14,16}$/.test(cellDigits)) {
+        imeis.push(cellDigits);
+        return;
+      }
+
+      // Tách theo khoảng trắng, xuống dòng, dấu phẩy, chấm phẩy, tab
+      const parts = cellClean.split(/[\n,;\t\r\s]+/).map(s => s.trim()).filter(Boolean);
       parts.forEach(p => {
-        const clean = p.replace(/\s+/g, '');
-        if (/^[a-zA-Z0-9]{8,20}$/.test(clean)) {
+        let clean = p;
+        // Chuyển đổi số khoa học (VD: 3.58912E+14) về dạng số nguyên đầy đủ
+        if (/^[0-9]+(\.[0-9]+)?[eE]\+[0-9]+$/.test(clean)) {
+          try {
+            clean = BigInt(Math.round(Number(clean))).toString();
+          } catch (e) {}
+        }
+        clean = clean.replace(/[^a-zA-Z0-9]/g, '');
+        // Kiểm tra hợp lệ: độ dài 8-20 alphanumeric, PHẢI có ít nhất 1 chữ số, không nằm trong tiêu đề cột
+        if (/^[a-zA-Z0-9]{8,20}$/.test(clean) && /\d/.test(clean) && !ignoreKeywords.has(clean.toUpperCase())) {
           imeis.push(clean);
         }
       });
     });
 
     const uniqueImeis = [...new Set(imeis)];
+    const safeFileName = typeof escapeHtml === 'function' ? escapeHtml(file.name) : file.name;
 
     if (uniqueImeis.length === 0) {
-      api.showToast(`Không tìm thấy mã IMEI hợp lệ nào trong file "${file.name}"`, 'warning');
+      api.showToast(`Không tìm thấy mã IMEI hợp lệ nào trong file "${safeFileName}"`, 'warning');
       event.target.value = '';
       return;
     }
@@ -906,14 +931,26 @@ async function handleExcelKiemKeUpload(event) {
     if (textarea) {
       const currentVal = textarea.value.trim();
       const existingList = currentVal ? currentVal.split(/[\n,;\t\r]+/).map(s => s.trim()).filter(Boolean) : [];
+      const newlyAdded = uniqueImeis.filter(x => !existingList.includes(x)).length;
+      const duplicateCount = uniqueImeis.length - newlyAdded;
       const combined = [...new Set([...existingList, ...uniqueImeis])];
       textarea.value = combined.join('\n');
       updateCountScanned();
-      api.showToast(`Đã đọc và nạp thành công ${uniqueImeis.length} mã IMEI từ file "${file.name}"!`, 'success');
+
+      if (newlyAdded === 0) {
+        api.showToast(`Tất cả ${uniqueImeis.length} mã IMEI trong file "${safeFileName}" đã tồn tại trong danh sách!`, 'info');
+      } else {
+        let msg = `Đã đọc và nạp thành công ${newlyAdded} mã IMEI mới từ file "${safeFileName}"!`;
+        if (duplicateCount > 0) {
+          msg += ` (Bỏ qua ${duplicateCount} mã đã trùng)`;
+        }
+        api.showToast(msg, 'success');
+      }
     }
   } catch (err) {
     console.error('Lỗi khi đọc file Excel:', err);
-    api.showToast(`Lỗi đọc file Excel: ${err.message || 'File không đúng định dạng'}`, 'danger');
+    const safeErrorMsg = typeof escapeHtml === 'function' ? escapeHtml(err.message || 'File không đúng định dạng') : (err.message || 'File không đúng định dạng');
+    api.showToast(`Lỗi đọc file Excel: ${safeErrorMsg}`, 'danger');
   } finally {
     event.target.value = '';
   }
